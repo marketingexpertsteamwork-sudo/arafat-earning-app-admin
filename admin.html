@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel (Upgraded)</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; color: #333; margin: 0; padding: 15px; }
+        .admin-container { max-width: 1200px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 15px rgba(0, 0, 0, 0.1); }
+        h1, h2, h3 { color: #333; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .section-content { margin-bottom: 30px; }
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        table th, table td { border: 1px solid #ddd; padding: 10px; text-align: left; vertical-align: middle; }
+        table th { background-color: #4CAF50; color: white; }
+        tbody tr:nth-child(even) { background-color: #f9f9f9; }
+        tbody tr.banned-user { background-color: #ffdddd; text-decoration: line-through; }
+        button { padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; color: white; font-size: 13px; margin: 2px; }
+        .btn-approve { background-color: #28a745; } .btn-deny { background-color: #dc3545; } .btn-edit { background-color: #007bff; } .btn-bonus { background-color: #ff9800; } .btn-save { background-color: #ffc107; color: black; } .btn-ban { background-color: #c82333; } .btn-unban { background-color: #17a2b8; } .btn-deduct { background-color: #6c757d; } .btn-history { background-color: #17a2b8; } .btn-notice { background-color: #fd7e14; } .btn-reply { background-color: #007bff; }
+        .status { padding: 4px 8px; border-radius: 12px; color: white; font-size: 12px; text-align: center; }
+        .status-pending { background-color: #ffc107; color: black; } .status-approved { background-color: #28a745; } .status-denied { background-color: #dc3545; }
+        .settings-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; padding: 20px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select, .form-group textarea { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; }
+        .form-group .toggle-switch { display: flex; align-items: center; }
+        .form-group .toggle-switch label { margin: 0; margin-left: 10px; }
+        /* নতুন যুক্ত করা কোড: toggle switch স্টাইল */
+        .user-toggle { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .user-toggle input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #2196F3; }
+        input:checked + .slider:before { transform: translateX(26px); }
+        .full-width-button { grid-column: 1 / -1; padding: 12px; font-size: 16px; }
+        .dashboard-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-box { background-color: #f0f0f0; padding: 20px; border-radius: 8px; text-align: center; border-left: 5px solid #4CAF50; }
+        .stat-box h3 { margin: 0 0 10px 0; color: #555; font-size: 16px; text-transform: uppercase; }
+        .stat-box p { margin: 0; font-size: 24px; font-weight: bold; }
+        .search-container { margin-bottom: 15px; } .search-container input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        .menu-bar { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .menu-btn { background-color: #007bff; padding: 10px 15px; font-size: 16px; border-bottom: 3px solid transparent; }
+        .menu-btn.active { background-color: #0056b3; border-bottom: 3px solid #ffc107; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: #fefefe; margin: 10% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 700px; border-radius: 8px; }
+        .close-btn { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+    </style>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+</head>
+<body>
+    <div id="login-container" style="max-width: 400px; margin: 50px auto; padding: 30px; background: #fff; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.1); text-align: center;">
+        <h2 style="border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 0;">Admin Login</h2>
+        <input type="email" id="email" placeholder="Email" style="padding: 12px; width: 100%; box-sizing: border-box; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px;"><br>
+        <input type="password" id="password" placeholder="Password" style="padding: 12px; width: 100%; box-sizing: border-box; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 4px;"><br>
+        <button onclick="adminLogin()" style="padding: 12px 25px; font-size: 16px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px;">Login</button>
+        <p id="login-error" style="color: red; margin-top: 15px;"></p>
+    </div>
+
+    <div class="admin-container" id="admin-container" style="display:none;">
+        <h1>Admin Panel (Upgraded)</h1>
+
+        <div class="menu-bar">
+            <button class="menu-btn active" onclick="showSection('dashboard')">Dashboard</button>
+            <button class="menu-btn" onclick="showSection('settings')">Global Settings</button>
+            <button class="menu-btn" onclick="showSection('withdrawals')">Withdrawal Requests</button>
+            <button class="menu-btn" onclick="showSection('users')">User Data</button>
+            <button class="menu-btn" onclick="showSection('referrals')">Referrals</button>
+            <button class="menu-btn" onclick="showSection('tasks')">Tasks</button>
+            <button class="menu-btn" onclick="showSection('support')">Support Tickets</button>
+        </div>
+
+        <div id="dashboard" class="section-content">
+            <h2>Dashboard</h2>
+            <div class="dashboard-stats">
+                <div class="stat-box"><h3>Total Users</h3><p id="total-users">0</p></div>
+                <div class="stat-box" style="border-color: #ffc107;"><h3>Pending Withdrawals</h3><p id="pending-withdrawals">0</p></div>
+                <div class="stat-box" style="border-color: #007bff;"><h3>Total Points</h3><p id="total-points">0.00</p></div>
+                <div class="stat-box" style="border-color: #28a745;"><h3>New Users (Today)</h3><p id="today-new-users">0</p></div>
+                <div class="stat-box" style="border-color: #6f42c1;"><h3>Active Users (Today)</h3><p id="active-users-today">0</p></div>
+                <div class="stat-box" style="border-color: #fd7e14;"><h3>Total Ads Watched</h3><p id="total-ads-watched">0</p></div>
+                <div class="stat-box" style="border-color: #dc3545;"><h3>Total Withdrawn</h3><p id="total-withdrawn">0.00</p></div>
+            </div>
+            <div class="table-container">
+                <h3>Top 10 Earners</h3>
+                <table id="top-earners-table">
+                    <thead><tr><th>Rank</th><th>User Name</th><th>Points</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="settings" class="section-content" style="display:none;">
+            <h2>Global Settings</h2>
+            <div class="settings-form">
+                <div class="form-group"><label for="pointsPerAd">Points per Ad</label><input type="number" id="pointsPerAd" step="0.01"></div>
+                <div class="form-group"><label for="minWithdraw">Minimum Withdraw Points</label><input type="number" id="minWithdraw"></div>
+                <div class="form-group"><label for="autoAdInterval">Auto Ad Interval (Seconds)</label><input type="number" id="autoAdInterval"></div>
+                <div class="form-group"><label for="adZoneId">Primary Ad Network Zone ID</label><input type="text" id="adZoneId" placeholder="e.g., 9892594"></div>
+                <div class="form-group"><label for="backupAdZoneId">Backup Ad Network Zone ID</label><input type="text" id="backupAdZoneId" placeholder="e.g., 9892740"></div>
+                <div class="form-group"><label for="paymentMethods">Payment Methods (comma-separated)</label><input type="text" id="paymentMethods" placeholder="e.g., bkash,nagad,rocket"></div>
+                <div class="form-group"><label for="dailyAdLimit">Daily Ad Watch Limit</label><input type="number" id="dailyAdLimit" placeholder="e.g., 20"></div>
+                <div class="form-group"><label for="referrerBonus">Referrer Bonus Points</label><input type="number" id="referrerBonus" step="0.01" placeholder="e.g., 5.00"></div>
+                <div class="form-group"><label for="refereeBonus">New User (Referee) Bonus</label><input type="number" id="refereeBonus" step="0.01" placeholder="e.g., 2.00"></div>
+                <div class="form-group"><label for="dailyCheckinBonus">Daily Check-in Bonus</label><input type="number" id="dailyCheckinBonus" step="0.01" placeholder="e.g., 1.00"></div>
+                <div class="form-group"><label for="currentVersion">App Version</label><input type="text" id="currentVersion" placeholder="e.g., 1.1"></div>
+                <div class="form-group"><label for="adminPassword">Admin Password</label><input type="text" id="adminPassword" placeholder="Enter new admin password"></div>
+                
+                <!-- নতুন যুক্ত করা কোড: অ্যাপ কাস্টমাইজেশন অপশন -->
+                <div class="form-group"><label for="appName">App Name</label><input type="text" id="appName" placeholder="e.g., My Earnings App"></div>
+                <div class="form-group"><label for="devInfo">Developer Info</label><input type="text" id="devInfo" placeholder="e.g., Developed by Me"></div>
+                <div class="form-group"><label for="primaryColor">App Primary Color</label><input type="color" id="primaryColor" style="padding: 0; height: 40px;"></div>
+                <div class="form-group"><label for="withdrawalFee">Withdrawal Fee (%)</label><input type="number" id="withdrawalFee" step="0.1" placeholder="e.g., 2.5"></div>
+
+                <div class="form-group" style="grid-column: 1 / -1;"><label for="announcement">Broadcast Message to Users</label><textarea id="announcement" rows="3" placeholder="Leave empty for no message"></textarea></div>
+                <div class="form-group"><label>Ads Status</label><div class="toggle-switch"><input type="checkbox" id="adsEnabled" style="width: 20px; height: 20px;"><label for="adsEnabled">Ads Enabled</label></div></div>
+                
+                <!-- নতুন যুক্ত করা কোড: বোনাস ইভেন্ট ও ইউজার লেভেল ম্যানেজমেন্ট -->
+                <div style="grid-column: 1 / -1; border-top: 2px solid #ddd; margin-top: 15px; padding-top: 15px;">
+                    <h3 style="text-align:center; margin:0 0 15px 0;">Bonus Event & User Levels</h3>
+                </div>
+                <div class="form-group"><label for="bonusMultiplier">Event: Points Multiplier</label><input type="number" id="bonusMultiplier" step="0.1" placeholder="e.g., 2 for double points"></div>
+                <div class="form-group"><label for="bonusHours">Event: Duration (Hours)</label><input type="number" id="bonusHours" placeholder="e.g., 24 for one day"></div>
+                <div class="form-group" style="grid-column: 1 / -1;"><label for="userLevels">User Levels (JSON Format)</label><textarea id="userLevels" rows="5" placeholder='[{"name":"Bronze","minAds":100,"multiplier":1.1},{"name":"Silver","minAds":500,"multiplier":1.2}]'></textarea></div>
+
+                <div class="form-group" style="grid-column: 1 / -1; border-top: 2px solid #ddd; padding-top: 15px;"><h3 style="text-align: center; margin-top: 0;">Firebase Configuration</h3><p style="text-align: center; color: #666; margin-top: -10px;">Fill this to connect the user app automatically.</p></div>
+                <div class="form-group"><label for="fb_apiKey">API Key</label><input type="text" id="fb_apiKey" placeholder="AIzaSy..."></div>
+                <div class="form-group"><label for="fb_authDomain">Auth Domain</label><input type="text" id="fb_authDomain" placeholder="project-id.firebaseapp.com"></div>
+                <div class="form-group"><label for="fb_databaseURL">Database URL</label><input type="text" id="fb_databaseURL" placeholder="https://project-id-default-rtdb.firebaseio.com"></div>
+                <div class="form-group"><label for="fb_projectId">Project ID</label><input type="text" id="fb_projectId" placeholder="project-id"></div>
+                <div class="form-group"><label for="fb_storageBucket">Storage Bucket</label><input type="text" id="fb_storageBucket" placeholder="project-id.appspot.com"></div>
+                <div class="form-group"><label for="fb_messagingSenderId">Messaging Sender ID</label><input type="text" id="fb_messagingSenderId" placeholder="1234567890"></div>
+                <div class="form-group"><label for="fb_appId">App ID</label><input type="text" id="fb_appId" placeholder="1:123..:web:..."></div>
+                <div class="form-group"><label for="fb_measurementId">Measurement ID (Optional)</label><input type="text" id="fb_measurementId" placeholder="G-..."></div>
+            </div>
+            <button class="btn-save full-width-button" style="margin-top: 15px;" onclick="saveSettings()">Save All Settings</button>
+            <button class="btn-bonus full-width-button" style="margin-top: 10px;" onclick="giveBonusToAll()">Give Bonus to All Users</button>
+        </div>
+
+        <div id="withdrawals" class="section-content" style="display:none;">
+            <h2>Withdrawal Requests</h2>
+            <!-- নতুন: উইথড্রয়াল টেবিলে নতুন কলাম যোগ করা হয়েছে -->
+            <div class="table-container"><table id="withdrawal-requests-table"><thead><tr><th>User</th><th>Req. Amount</th><th>Fee</th><th>Final Amt.</th><th>Method</th><th>Phone</th><th>Status</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
+        </div>
+
+        <div id="users" class="section-content" style="display:none;">
+            <h2>User Data</h2>
+            <div class="search-container"><input type="text" id="user-search" onkeyup="filterUsers()" placeholder="Search by User Name..."></div>
+            <!-- নতুন: ইউজার টেবিলে নতুন কলাম যোগ করা হয়েছে -->
+            <div class="table-container"><table id="user-data-table"><thead><tr><th>User Name</th><th>Watched Ads</th><th>Points</th><th>Registered On</th><th>Actions</th><th>Disable Ads</th><th>Ban Control</th></tr></thead><tbody></tbody></table></div>
+        </div>
+        
+        <div id="referrals" class="section-content" style="display:none;">
+            <h2>Referral Data</h2>
+            <div class="table-container">
+                <table id="referrals-table">
+                    <thead><tr><th>Rank</th><th>Referrer Name</th><th>Total Referrals</th><th>Referral Bonus Earned</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tasks" class="section-content" style="display:none;">
+            <h2>Task Management</h2>
+            <div class="settings-form">
+                <input type="hidden" id="task-id">
+                <div class="form-group"><label for="task-title">Task Title</label><input type="text" id="task-title" placeholder="e.g., Watch YouTube Video"></div>
+                <div class="form-group"><label for="task-points">Points Reward</label><input type="number" id="task-points" placeholder="e.g., 5"></div>
+                <div class="form-group" style="grid-column: 1 / -1;"><label for="task-desc">Task Description</label><textarea id="task-desc" rows="2"></textarea></div>
+                <div class="form-group" style="grid-column: 1 / -1;"><label for="task-url">Task URL</label><input type="text" id="task-url" placeholder="https://..."></div>
+                <div class="form-group"><label>Task Status</label><div class="toggle-switch"><input type="checkbox" id="task-active" checked style="width: 20px; height: 20px;"><label for="task-active">Task Active</label></div></div>
+                <button class="btn-save" onclick="saveTask()" style="grid-column: 1 / -1;">Save Task</button>
+            </div>
+            <h3 style="margin-top: 30px;">Current Tasks</h3>
+            <div class="table-container"><table id="tasks-table"><thead><tr><th>Title</th><th>Points</th><th>Status</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
+        </div>
+
+        <div id="support" class="section-content" style="display:none;">
+            <h2>Support Tickets</h2>
+            <div class="table-container">
+                <table id="support-tickets-table">
+                    <thead><tr><th>User Name</th><th>Message</th><th>Timestamp</th><th>Action</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="historyModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="document.getElementById('historyModal').style.display='none'">&times;</span>
+            <h3 id="modalUserName">User History</h3>
+            <h4 id="modalSubheading">Transaction Log:</h4>
+            <div id="modalHistoryContent" class="table-container"></div>
+        </div>
+    </div>
+
+    <script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyDfn1veuHMeHCbqgYQs_KEREDgwVmBxSHw",
+        authDomain: "the-arafat-earnings.firebaseapp.com",
+        databaseURL: "https://the-arafat-earnings-default-rtdb.firebaseio.com",
+        projectId: "the-arafat-earnings",
+        storageBucket: "the-arafat-earnings.firebasestorage.app",
+        messagingSenderId: "1082223011616",
+        appId: "1:1082223011616:web:3de7e7438ca002dda6d945",
+        measurementId: "G-T9NY7D2RW8"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    function adminLogin() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const loginError = document.getElementById('login-error');
+        loginError.innerText = ""; 
+        if (!email || !password) { loginError.innerText = "Please enter both email and password."; return; }
+        auth.signInWithEmailAndPassword(email, password).catch(error => { loginError.innerText = error.message; });
+    }
+
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('admin-container').style.display = 'block';
+            initializeAppLogic(); 
+        } else {
+            document.getElementById('login-container').style.display = 'block';
+            document.getElementById('admin-container').style.display = 'none';
+        }
+    });
+    
+    function initializeAppLogic() {
+        const database = firebase.database();
+        const settingsRef = database.ref('settings');
+        const usersRef = database.ref('users');
+        const withdrawalsRef = database.ref('withdrawals');
+        const supportTicketsRef = database.ref('supportTickets');
+        const tasksRef = database.ref('tasks');
+        const transactionsRef = database.ref('transactions');
+
+        settingsRef.on('value', (snapshot) => {
+            const settings = snapshot.val();
+            if (settings) {
+                document.getElementById('pointsPerAd').value = settings.pointsPerAd || 1.0;
+                document.getElementById('minWithdraw').value = settings.minWithdrawPoints || 5;
+                document.getElementById('adsEnabled').checked = settings.adsEnabled === true;
+                document.getElementById('autoAdInterval').value = settings.autoAdIntervalSeconds || 5;
+                document.getElementById('adZoneId').value = settings.adZoneId || '';
+                document.getElementById('backupAdZoneId').value = settings.backupAdZoneId || '';
+                document.getElementById('paymentMethods').value = settings.paymentMethodsCSV || 'bkash,nagad';
+                document.getElementById('announcement').value = settings.announcement || '';
+                document.getElementById('dailyAdLimit').value = settings.dailyAdLimit || 20;
+                document.getElementById('referrerBonus').value = settings.referrerBonus || 5;
+                document.getElementById('refereeBonus').value = settings.refereeBonus || 2;
+                document.getElementById('dailyCheckinBonus').value = settings.dailyCheckinBonus || 1;
+                document.getElementById('currentVersion').value = settings.currentVersion || '1.0';
+                // নতুন যুক্ত করা কোড: নতুন সেটিংস লোড করা
+                document.getElementById('appName').value = settings.appName || '';
+                document.getElementById('devInfo').value = settings.devInfo || '';
+                document.getElementById('primaryColor').value = settings.primaryColor || '#008000';
+                document.getElementById('withdrawalFee').value = settings.withdrawalFeePercentage || 0;
+                document.getElementById('userLevels').value = settings.userLevels || '';
+                // বোনাস ইভেন্টের ইনপুট ফিল্ডগুলো রিসেট রাখা হয়
+            }
+        });
+        database.ref('admin/password').on('value', (snapshot) => { document.getElementById('adminPassword').value = snapshot.val() || ''; });
+        database.ref('appConfig/firebase').on('value', (snapshot) => {
+            const config = snapshot.val();
+            if (config) { Object.keys(config).forEach(key => { const el = document.getElementById(`fb_${key}`); if(el) el.value = config[key] || ''; }); }
+        });
+
+        window.saveSettings = function() {
+            if (document.getElementById('adminPassword').value.trim()) { database.ref('admin/password').set(document.getElementById('adminPassword').value.trim()); }
+            const firebaseConfigData = {};
+            ['apiKey', 'authDomain', 'databaseURL', 'projectId', 'storageBucket', 'messagingSenderId', 'appId', 'measurementId'].forEach(key => { firebaseConfigData[key] = document.getElementById(`fb_${key}`).value.trim(); });
+            database.ref('appConfig/firebase').set(firebaseConfigData);
+
+            // নতুন যুক্ত করা কোড: বোনাস ইভেন্ট তৈরি
+            const bonusMultiplier = parseFloat(document.getElementById('bonusMultiplier').value);
+            const bonusHours = parseFloat(document.getElementById('bonusHours').value);
+            let bonusEventData = { multiplier: 1, expiresAt: 0 };
+            if (bonusMultiplier && bonusHours && bonusMultiplier > 1 && bonusHours > 0) {
+                bonusEventData = {
+                    multiplier: bonusMultiplier,
+                    expiresAt: Date.now() + (bonusHours * 60 * 60 * 1000)
+                };
+            }
+
+            const settings = {
+                pointsPerAd: parseFloat(document.getElementById('pointsPerAd').value),
+                minWithdrawPoints: parseInt(document.getElementById('minWithdraw').value),
+                adsEnabled: document.getElementById('adsEnabled').checked,
+                autoAdIntervalSeconds: parseInt(document.getElementById('autoAdInterval').value),
+                adZoneId: document.getElementById('adZoneId').value.trim(),
+                backupAdZoneId: document.getElementById('backupAdZoneId').value.trim(),
+                paymentMethodsCSV: document.getElementById('paymentMethods').value.trim(),
+                announcement: document.getElementById('announcement').value.trim(),
+                dailyAdLimit: parseInt(document.getElementById('dailyAdLimit').value),
+                referrerBonus: parseFloat(document.getElementById('referrerBonus').value),
+                refereeBonus: parseFloat(document.getElementById('refereeBonus').value),
+                dailyCheckinBonus: parseFloat(document.getElementById('dailyCheckinBonus').value),
+                currentVersion: document.getElementById('currentVersion').value.trim(),
+                // নতুন যুক্ত করা কোড: নতুন সেটিংস সেভ করা
+                appName: document.getElementById('appName').value.trim(),
+                devInfo: document.getElementById('devInfo').value.trim(),
+                primaryColor: document.getElementById('primaryColor').value,
+                withdrawalFeePercentage: parseFloat(document.getElementById('withdrawalFee').value) || 0,
+                userLevels: document.getElementById('userLevels').value.trim(),
+                bonusEvent: bonusEventData
+            };
+            settingsRef.set(settings).then(() => {
+                alert("Settings saved successfully!");
+                document.getElementById('bonusMultiplier').value = '';
+                document.getElementById('bonusHours').value = '';
+            });
+        }
+
+        usersRef.on('value', (snapshot) => {
+            const users = snapshot.val();
+            const tableBody = document.querySelector('#user-data-table tbody');
+            const referralsTableBody = document.querySelector('#referrals-table tbody');
+            tableBody.innerHTML = ''; referralsTableBody.innerHTML = '';
+            let totalUsers = 0, totalPoints = 0, todayNewUsers = 0, totalAdsWatched = 0, activeToday = 0;
+            const allUsersArray = [];
+            const referralData = {};
+
+            if (users) {
+                const today = new Date().toISOString().slice(0, 10);
+                for (const userId in users) {
+                    totalUsers++;
+                    const user = users[userId];
+                    const userPoints = user.earnedPoints || 0;
+                    totalPoints += userPoints;
+                    totalAdsWatched += user.watchedAds || 0;
+                    allUsersArray.push({ userId, ...user });
+                    if(user.createdAt && user.createdAt.slice(0, 10) === today) todayNewUsers++;
+                    if(user.lastAdWatchDate === today) activeToday++;
+
+                    const isBanned = user.isBanned === true;
+                    const adsDisabled = user.adsDisabled === true; // নতুন
+                    let registeredDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-GB') : 'N/A';
+                    
+                    // নতুন যুক্ত করা কোড: টেবিলে নতুন কলামের জন্য HTML
+                    tableBody.innerHTML += `<tr class="${isBanned ? 'banned-user' : ''}">
+                        <td>${user.userName||'N/A'}</td>
+                        <td>${user.watchedAds||0}</td>
+                        <td>${userPoints.toFixed(2)}</td>
+                        <td>${registeredDate}</td>
+                        <td><button class="btn-edit" onclick="editUserPoints('${userId}',${userPoints})">Edit</button><button class="btn-bonus" onclick="giveUserBonus('${userId}')">Bonus</button><button class="btn-deduct" onclick="deductUserPoints('${userId}')">Deduct</button><button class="btn-history" onclick="viewUserHistory('${userId}','${user.userName}')">History</button><button class="btn-notice" onclick="sendUserNotice('${userId}')">Notice</button></td>
+                        <td><label class="user-toggle"><input type="checkbox" ${adsDisabled ? 'checked' : ''} onchange="toggleUserAds('${userId}', this.checked)"><span class="slider"></span></label></td>
+                        <td><button class="${isBanned ? 'btn-unban' : 'btn-ban'}" onclick="toggleUserBan('${userId}',${isBanned})">${isBanned ? 'Unban' : 'Ban'}</button></td>
+                    </tr>`;
+                    
+                    if(user.referralsMade > 0) {
+                        referralData[userId] = { name: user.userName, count: user.referralsMade, bonus: 0 };
+                    }
+                }
+            }
+            document.getElementById('total-users').innerText = totalUsers;
+            document.getElementById('total-points').innerText = totalPoints.toFixed(2);
+            document.getElementById('today-new-users').innerText = todayNewUsers;
+            document.getElementById('total-ads-watched').innerText = totalAdsWatched;
+            document.getElementById('active-users-today').innerText = activeToday;
+            allUsersArray.sort((a, b) => (b.earnedPoints || 0) - (a.earnedPoints || 0));
+            const topEarnersTable = document.querySelector('#top-earners-table tbody');
+            topEarnersTable.innerHTML = '';
+            allUsersArray.slice(0, 10).forEach((user, i) => topEarnersTable.innerHTML += `<tr><td>${i+1}</td><td>${user.userName}</td><td>${(user.earnedPoints||0).toFixed(2)}</td></tr>`);
+
+            transactionsRef.once('value', transSnap => {
+                const transactions = transSnap.val() || {};
+                Object.keys(transactions).forEach(uid => {
+                    Object.values(transactions[uid]).forEach(t => {
+                        if (t.type === 'referrer_bonus' && referralData[uid]) {
+                            referralData[uid].bonus += t.amount;
+                        }
+                    });
+                });
+                const sortedReferrals = Object.values(referralData).sort((a,b) => b.count - a.count);
+                sortedReferrals.forEach((ref, i) => referralsTableBody.innerHTML += `<tr><td>${i+1}</td><td>${ref.name}</td><td>${ref.count}</td><td>${ref.bonus.toFixed(2)}</td></tr>`);
+            });
+        });
+
+        withdrawalsRef.orderByChild('timestamp').on('value', (snapshot) => {
+            const requests = snapshot.val();
+            const tableBody = document.querySelector('#withdrawal-requests-table tbody');
+            tableBody.innerHTML = '';
+            let pendingCount = 0, totalWithdrawn = 0;
+            if (requests) {
+                const sortedRequests = Object.entries(requests).reverse();
+                for (const [reqId, req] of sortedRequests) {
+                    let statusClass = (req.status === 'Pending') ? 'status-pending' : (req.status === 'Approved') ? 'status-approved' : 'status-denied';
+                    if (req.status === 'Pending') pendingCount++;
+                    if (req.status === 'Approved') totalWithdrawn += req.amount;
+                    // নতুন যুক্ত করা কোড: টেবিলে ফি এবং ফাইনাল অ্যামাউন্ট দেখানো
+                    tableBody.innerHTML += `<tr>
+                        <td>${req.userName||'N/A'}</td>
+                        <td>${(req.amount || 0).toFixed(2)}</td>
+                        <td>${(req.fee || 0).toFixed(2)}</td>
+                        <td>${(req.finalAmount || 0).toFixed(2)}</td>
+                        <td>${req.method}</td>
+                        <td>${req.phone}</td>
+                        <td><span class="status ${statusClass}">${req.status}</span></td>
+                        <td>${req.status==='Pending'?`<button class="btn-approve" onclick="updateWithdrawalStatus('${reqId}','Approved')">Approve</button><button class="btn-deny" onclick="updateWithdrawalStatus('${reqId}','Denied','${req.userId}',${req.amount})">Deny</button>`:'Processed'}</td>
+                    </tr>`;
+                }
+            }
+            document.getElementById('pending-withdrawals').innerText = pendingCount;
+            document.getElementById('total-withdrawn').innerText = totalWithdrawn.toFixed(2);
+        });
+
+        supportTicketsRef.on('value', (snapshot) => {
+            const tickets = snapshot.val() || {};
+            const tableBody = document.querySelector('#support-tickets-table tbody');
+            tableBody.innerHTML = '';
+            const sortedTickets = Object.entries(tickets).reverse();
+            for (const [ticketId, ticket] of sortedTickets) {
+                tableBody.innerHTML += `<tr><td>${ticket.userName}</td><td>${ticket.message}</td><td>${new Date(ticket.timestamp).toLocaleString()}</td><td><button class="btn-reply" onclick="replyToTicket('${ticket.userId}', '${ticketId}')">Reply & Resolve</button><button class="btn-deny" onclick="resolveTicket('${ticketId}')">Delete</button></td></tr>`;
+            }
+        });
+
+        tasksRef.on('value', snapshot => {
+            const tasks = snapshot.val() || {};
+            const tableBody = document.querySelector('#tasks-table tbody');
+            tableBody.innerHTML = '';
+            for (const [taskId, task] of Object.entries(tasks)) {
+                tableBody.innerHTML += `<tr>
+                    <td>${task.title}</td>
+                    <td>${task.points}</td>
+                    <td><span class="status ${task.isActive ? 'status-approved' : 'status-denied'}">${task.isActive ? 'Active' : 'Inactive'}</span></td>
+                    <td>
+                        <button class="btn-edit" onclick="editTask('${taskId}')">Edit</button>
+                        <button class="btn-deny" onclick="deleteTask('${taskId}')">Delete</button>
+                    </td>
+                </tr>`;
+            }
+        });
+
+        window.showSection = function(sectionId) {
+            document.querySelectorAll('.section-content').forEach(sec => sec.style.display = 'none');
+            document.getElementById(sectionId).style.display = 'block';
+            document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.menu-btn[onclick="showSection('${sectionId}')"]`).classList.add('active');
+        }
+        document.addEventListener('DOMContentLoaded', () => showSection('dashboard'));
+        
+        window.filterUsers = function() {
+            const filter = document.getElementById('user-search').value.toUpperCase();
+            document.querySelectorAll('#user-data-table tbody tr').forEach(tr => {
+                const td = tr.getElementsByTagName('td')[0];
+                if (td) tr.style.display = (td.textContent.toUpperCase().indexOf(filter) > -1) ? "" : "none";
+            });
+        }
+        
+        function logAdminTransaction(userId, type, amount, details) {
+            transactionsRef.child(userId).push({ type, amount, details, timestamp: new Date().toISOString() });
+        }
+        
+        window.giveUserBonus = function(userId) {
+            const bonusAmount = parseFloat(prompt(`Enter bonus points for user:`));
+            if (!isNaN(bonusAmount) && bonusAmount > 0) {
+                usersRef.child(`${userId}/earnedPoints`).transaction(p => (p||0) + bonusAmount);
+                logAdminTransaction(userId, 'admin_bonus', bonusAmount, 'Bonus from admin');
+                alert(`Successfully gave ${bonusAmount} points`);
+            } else { alert("Invalid amount."); }
+        }
+
+        window.deductUserPoints = function(userId) {
+            const deductAmount = parseFloat(prompt(`Enter points to deduct from user:`));
+            if (!isNaN(deductAmount) && deductAmount > 0) {
+                usersRef.child(`${userId}/earnedPoints`).transaction(p => Math.max(0, (p||0) - deductAmount));
+                logAdminTransaction(userId, 'admin_deduct', -deductAmount, 'Deduction by admin');
+                alert(`Successfully deducted ${deductAmount} points`);
+            } else { alert("Invalid amount."); }
+        }
+
+        window.viewUserHistory = function(userId, userName) {
+            document.getElementById('modalUserName').innerText = `History for ${userName}`;
+            const contentDiv = document.getElementById('modalHistoryContent');
+            contentDiv.innerHTML = "Loading...";
+            document.getElementById('historyModal').style.display = 'block';
+            transactionsRef.child(userId).orderByChild('timestamp').limitToLast(100).once('value', snapshot => {
+                const history = snapshot.val();
+                if(!history) { contentDiv.innerHTML = "<p>No transaction history found.</p>"; return; }
+                let tableHTML = '<table><thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Details</th></tr></thead><tbody>';
+                Object.values(history).reverse().forEach(t => {
+                    tableHTML += `<tr>
+                        <td>${new Date(t.timestamp).toLocaleString()}</td>
+                        <td style="text-transform: capitalize;">${t.type.replace(/_/g, ' ')}</td>
+                        <td style="color:${t.amount > 0 ? 'green' : 'red'}; font-weight: bold;">${t.amount > 0 ? '+' : ''}${t.amount.toFixed(2)}</td>
+                        <td>${t.details || 'N/A'}</td>
+                    </tr>`;
+                });
+                contentDiv.innerHTML = tableHTML + '</tbody></table>';
+            });
+        }
+        
+        window.sendUserNotice = function(userId, defaultMessage = "") {
+            const message = prompt("Enter the notice/message for this user:", defaultMessage);
+            if(message) usersRef.child(`${userId}/notice`).set(message).then(()=>alert("Notice sent successfully!"));
+        }
+        
+        window.resolveTicket = function(ticketId) {
+            if (confirm("Are you sure you want to delete this ticket?")) {
+                supportTicketsRef.child(ticketId).remove().then(()=>alert("Ticket deleted."));
+            }
+        }
+        window.replyToTicket = function(userId, ticketId) {
+            const reply = prompt("Enter your reply to the user:");
+            if (reply && reply.trim()) {
+                sendUserNotice(userId, reply.trim());
+                supportTicketsRef.child(ticketId).remove();
+            }
+        }
+
+        window.giveBonusToAll = function() {
+            const bonusAmount = parseFloat(prompt("Enter bonus points to give to ALL users:"));
+             if (!isNaN(bonusAmount) && bonusAmount > 0 && confirm(`Are you sure you want to give ${bonusAmount} points to EVERY user?`)) {
+                usersRef.once('value').then((snapshot) => {
+                    const updates = {};
+                    snapshot.forEach(cs => {
+                        updates[`/users/${cs.key}/earnedPoints`] = (cs.val().earnedPoints||0) + bonusAmount;
+                        updates[`/transactions/${cs.key}/${database.ref().push().key}`] = { type: 'global_bonus', amount: bonusAmount, details: 'Bonus for all users', timestamp: new Date().toISOString() };
+                    });
+                    database.ref().update(updates).then(()=>alert("Bonus given to all users successfully!"));
+                });
+            } else { alert("Invalid amount entered."); }
+        }
+
+        window.editUserPoints = function(userId, currentPoints) {
+            const newPoints = prompt(`Enter new points for user:`, currentPoints);
+            if (newPoints !== null && !isNaN(newPoints)) {
+                const newAmount = parseFloat(newPoints);
+                const diff = newAmount - currentPoints;
+                usersRef.child(`${userId}/earnedPoints`).set(newAmount);
+                logAdminTransaction(userId, 'manual_edit', diff, `Points manually set to ${newAmount}`);
+            }
+        }
+        
+        window.updateWithdrawalStatus = function(reqId, newStatus, userId, amount) {
+            if (confirm(`Are you sure you want to set this request to "${newStatus}"?`)) {
+                withdrawalsRef.child(`${reqId}/status`).set(newStatus).then(() => {
+                    if(newStatus==='Denied') {
+                        usersRef.child(`${userId}/earnedPoints`).transaction((p)=>(p||0)+amount);
+                        logAdminTransaction(userId, 'withdraw_denied', amount, `Withdrawal of ${amount} points denied and refunded.`);
+                    } else if (newStatus === 'Approved') {
+                        logAdminTransaction(userId, 'withdraw_approved', -amount, `Withdrawal of ${amount} points approved.`);
+                    }
+                    alert("Status updated successfully!");
+                });
+            }
+        }
+        
+        window.toggleUserBan = function(userId, isCurrentlyBanned) {
+            if(confirm(`Are you sure you want to ${isCurrentlyBanned?"unban":"ban"} this user?`)) usersRef.child(`${userId}/isBanned`).set(!isCurrentlyBanned);
+        }
+
+        // নতুন যুক্ত করা কোড: নির্দিষ্ট ব্যবহারকারীর জন্য বিজ্ঞাপন চালু/বন্ধ করার ফাংশন
+        window.toggleUserAds = function(userId, isDisabled) {
+            usersRef.child(`${userId}/adsDisabled`).set(isDisabled);
+        }
+        
+        window.saveTask = function() {
+            const taskId = document.getElementById('task-id').value;
+            const taskData = {
+                title: document.getElementById('task-title').value,
+                description: document.getElementById('task-desc').value,
+                points: parseFloat(document.getElementById('task-points').value),
+                url: document.getElementById('task-url').value,
+                isActive: document.getElementById('task-active').checked
+            };
+            if (!taskData.title || !taskData.points) { alert("Title and Points are required."); return; }
+            
+            const ref = taskId ? tasksRef.child(taskId) : tasksRef.push();
+            ref.set(taskData).then(() => {
+                alert("Task saved successfully!");
+                document.getElementById('task-id').value = '';
+                document.getElementById('task-title').value = '';
+                document.getElementById('task-desc').value = '';
+                document.getElementById('task-points').value = '';
+                document.getElementById('task-url').value = '';
+            });
+        }
+        window.editTask = function(taskId) {
+            tasksRef.child(taskId).once('value', snapshot => {
+                const task = snapshot.val();
+                document.getElementById('task-id').value = taskId;
+                document.getElementById('task-title').value = task.title;
+                document.getElementById('task-desc').value = task.description;
+                document.getElementById('task-points').value = task.points;
+                document.getElementById('task-url').value = task.url;
+                document.getElementById('task-active').checked = task.isActive;
+                showSection('tasks');
+                window.scrollTo(0,0);
+            });
+        }
+        window.deleteTask = function(taskId) {
+            if(confirm("Are you sure you want to delete this task?")) {
+                tasksRef.child(taskId).remove();
+            }
+        }
+    } 
+    </script>
+</body>
+</html>
