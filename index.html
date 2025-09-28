@@ -3,202 +3,331 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel (Upgraded)</title>
+    <title>Admin Control Panel</title>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f9; color: #333; margin: 0; padding: 15px; }
-        .admin-container { max-width: 1200px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 15px rgba(0, 0, 0, 0.1); }
-        h1, h2, h3 { color: #333; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .section-content { margin-bottom: 30px; }
-        .table-container { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        table th, table td { border: 1px solid #ddd; padding: 10px; text-align: left; vertical-align: middle; }
-        table th { background-color: #4CAF50; color: white; }
-        tbody tr:nth-child(even) { background-color: #f9f9f9; }
-        tbody tr.banned-user { background-color: #ffdddd; text-decoration: line-through; }
-        button { padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; color: white; font-size: 13px; margin: 2px; }
-        .btn-approve { background-color: #28a745; } .btn-deny { background-color: #dc3545; } .btn-edit { background-color: #007bff; } .btn-bonus { background-color: #ff9800; } .btn-save { background-color: #ffc107; color: black; } .btn-ban { background-color: #c82333; } .btn-unban { background-color: #17a2b8; } .btn-deduct { background-color: #6c757d; } .btn-history { background-color: #17a2b8; } .btn-notice { background-color: #fd7e14; } .btn-reply { background-color: #007bff; }
-        .status { padding: 4px 8px; border-radius: 12px; color: white; font-size: 12px; text-align: center; }
-        .status-pending { background-color: #ffc107; color: black; } .status-approved { background-color: #28a745; } .status-denied { background-color: #dc3545; }
-        .settings-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; padding: 20px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; }
-        .form-group { display: flex; flex-direction: column; }
-        .form-group label { margin-bottom: 5px; font-weight: bold; }
-        .form-group input, .form-group select, .form-group textarea { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; }
-        .form-group .toggle-switch { display: flex; align-items: center; }
-        .form-group .toggle-switch label { margin: 0; margin-left: 10px; }
-        /* নতুন যুক্ত করা কোড: toggle switch স্টাইল */
-        .user-toggle { position: relative; display: inline-block; width: 50px; height: 24px; }
-        .user-toggle input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #2196F3; }
-        input:checked + .slider:before { transform: translateX(26px); }
-        .full-width-button { grid-column: 1 / -1; padding: 12px; font-size: 16px; }
-        .dashboard-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .stat-box { background-color: #f0f0f0; padding: 20px; border-radius: 8px; text-align: center; border-left: 5px solid #4CAF50; }
-        .stat-box h3 { margin: 0 0 10px 0; color: #555; font-size: 16px; text-transform: uppercase; }
-        .stat-box p { margin: 0; font-size: 24px; font-weight: bold; }
-        .search-container { margin-bottom: 15px; } .search-container input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        .menu-bar { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .menu-btn { background-color: #007bff; padding: 10px 15px; font-size: 16px; border-bottom: 3px solid transparent; }
-        .menu-btn.active { background-color: #0056b3; border-bottom: 3px solid #ffc107; }
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
-        .modal-content { background-color: #fefefe; margin: 10% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 700px; border-radius: 8px; }
-        .close-btn { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        :root {
+            --sidebar-width: 250px;
+            --topbar-height: 60px;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            margin: 0;
+            transition: margin-left 0.3s ease-in-out;
+        }
+        .admin-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: #1c293a;
+            color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            z-index: 1100;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out;
+        }
+        body.sidebar-open .sidebar {
+            transform: translateX(0);
+        }
+        .sidebar-header {
+            padding: 18px 20px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            border-bottom: 1px solid #3a4a5d;
+        }
+        .sidebar-header i { margin-right: 10px; }
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+        .sidebar-menu li a {
+            display: block;
+            padding: 15px 20px;
+            color: #f0f2f5;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background-color 0.3s, padding-left 0.3s;
+        }
+        .sidebar-menu li a:hover, .sidebar-menu li a.active {
+            background-color: #4A90E2;
+            padding-left: 25px;
+        }
+        .sidebar-menu li a i {
+            margin-right: 12px;
+            width: 20px;
+            text-align: center;
+        }
+        .main-content {
+            flex-grow: 1;
+            width: 100%;
+        }
+        .topbar {
+            height: var(--topbar-height);
+            background: #fff;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .menu-toggle-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #1c293a;
+            margin-right: 20px;
+        }
+        .topbar-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1c293a;
+        }
+        .content-wrapper {
+            padding: 20px;
+        }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+        .container { max-width: 1200px; margin: auto; }
+        h2, h3 { color: #1c293a; padding-bottom: 10px; margin-bottom: 20px; }
+        h2 { border-bottom: 2px solid #4A90E2; font-size: 1.5rem; }
+        h3 { font-size: 1.2rem; color: #333; border-bottom: 1px solid #ddd; margin-top: 25px; }
+        .grid-container { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+        .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 20px; }
+        .user-list, .withdrawal-list { max-height: 500px; overflow-y: auto; }
+        .list-item { padding: 12px; border-bottom: 1px solid #e0e0e0; cursor: pointer; transition: background-color 0.2s; }
+        .list-item:hover { background-color: #f7f7f7; }
+        .list-item.active { background-color: #e9f2fe; font-weight: 600; }
+        .list-item-header { font-weight: 600; font-size: 0.9rem; word-break: break-all; }
+        .list-item-subheader { font-size: 0.8rem; color: #666; word-break: break-all; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
+        .btn { padding: 10px 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; margin-right: 10px; margin-top: 5px; transition: all 0.2s ease; }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-primary { background-color: #4A90E2; color: white; }
+        .btn-danger { background-color: #E64A4A; color: white; }
+        .btn-success { background-color: #50E3C2; color: #333; }
+        .btn-warning { background-color: #F5A623; color: white; }
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+        #login-box { background: white; padding: 30px; border-radius: 12px; text-align: center; width: 90%; max-width: 350px; }
+        #login-box input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
+        .dashboard-item { background-color: #f9f9f9; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #e0e0e0; }
+        .dashboard-item .value { font-size: 1.8rem; font-weight: 700; color: #4A90E2; }
+        .dashboard-item .label { font-size: 0.85rem; color: #666; }
+        .detail-section { margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; }
+        .history-list { max-height: 200px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px; background: #fafafa; }
+        .history-item { font-size: 0.85rem; padding: 5px 0; border-bottom: 1px solid #f0f0f0; }
+        #sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1099; }
+        body.sidebar-open #sidebar-overlay { display: block; }
+        .tab-nav { display: flex; border-bottom: 1px solid #ddd; margin-bottom: 20px; }
+        .tab-nav-item { padding: 10px 20px; cursor: pointer; border-bottom: 3px solid transparent; }
+        .tab-nav-item.active { border-bottom-color: var(--primary-color); color: var(--primary-color); font-weight: 600; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        @media (max-width: 768px) { .grid-container { grid-template-columns: 1fr; } }
     </style>
-    <!-- Firebase SDKs -->
+</head>
+<body id="adminBody">
+
+    <div id="login-overlay">
+        <div id="login-box">
+            <h2>Admin Login</h2>
+            <input type="password" id="adminPassword" placeholder="Enter Password">
+            <button class="btn btn-primary" onclick="login()">Login</button>
+        </div>
+    </div>
+
+    <div class="admin-layout" id="adminContainer" style="display:none;">
+        <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+        <div class="sidebar" id="sidebar">
+            <h1 class="sidebar-header"><i class="fas fa-user-shield"></i> Admin</h1>
+            <ul class="sidebar-menu">
+                <li><a href="#" class="menu-item" data-section="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="#" class="menu-item" data-section="users"><i class="fas fa-users"></i> Users</a></li>
+                <li><a href="#" class="menu-item" data-section="withdrawals"><i class="fas fa-hand-holding-usd"></i> Withdrawals</a></li>
+                <li><a href="#" class="menu-item" data-section="bonus"><i class="fas fa-gift"></i> Bonus Channels</a></li>
+                <li><a href="#" class="menu-item" data-section="settings"><i class="fas fa-cogs"></i> App Settings</a></li>
+            </ul>
+        </div>
+
+        <div class="main-content">
+            <div class="topbar">
+                <button id="menuToggleBtn" class="menu-toggle-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+                <h1 id="topbarTitle" class="topbar-title">Welcome</h1>
+            </div>
+            <div class="content-wrapper">
+                <!-- Dashboard Section -->
+                <div id="dashboard-section" class="content-section">
+                    <div class="card">
+                        <div class="dashboard-grid">
+                            <div class="dashboard-item"><div class="value" id="analyticsTotalUsers">0</div><div class="label">Total Users</div></div>
+                            <div class="dashboard-item"><div class="value" id="analyticsNewUsersToday">0</div><div class="label">New Users Today</div></div>
+                            <div class="dashboard-item"><div class="value" id="analyticsPendingWithdrawals">0</div><div class="label">Pending Withdrawals</div></div>
+                            <div class="dashboard-item"><div class="value" id="analyticsTotalPoints">0</div><div class="label">Total Points in System</div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users Section -->
+                <div id="users-section" class="content-section">
+                     <h2><i class="fas fa-users"></i> User Management</h2>
+                     <div class="grid-container">
+                        <div class="card">
+                            <h3>All Users (<span id="userCount">0</span>)</h3>
+                            <input type="text" id="userSearch" placeholder="Search by name or ID..." onkeyup="renderUsersList()">
+                            <div class="user-list" id="usersListContainer"></div>
+                        </div>
+                        <div id="userDetailsCard" style="display:none;">
+                            <div class="card">
+                                <h3>User Details</h3>
+                                <div class="form-group"><label>User ID</label><input type="text" id="detailUserId" readonly></div>
+                                <div class="form-group"><label>Name</label><input type="text" id="detailUserName"></div>
+                                <div class="form-group"><label>Points</label><input type="number" id="detailUserPoints"></div>
+                                <!-- নতুন যুক্ত করা হয়েছে: লেভেল এবং XP ম্যানেজমেন্ট -->
+                                <div style="display: flex; gap: 10px;">
+                                    <div class="form-group" style="flex: 1;"><label>Level</label><input type="number" id="detailUserLevel"></div>
+                                    <div class="form-group" style="flex: 1;"><label>XP</label><input type="number" id="detailUserXp"></div>
+                                </div>
+                                <button class="btn btn-primary" onclick="saveUserDetails()">Save Changes</button>
+                                <button class="btn btn-warning" id="blockUserBtn" onclick="toggleBlockUser()">Block User</button>
+                                <button class="btn btn-danger" onclick="deleteUser()">Delete User</button>
+                            </div>
+                             <div class="card">
+                                <h3><i class="fas fa-envelope"></i> Send Personal Notice</h3>
+                                <div class="form-group">
+                                    <textarea id="personalNoticeMessage" rows="3" placeholder="Write a short message..."></textarea>
+                                </div>
+                                <button class="btn btn-primary" onclick="sendPersonalNotice()">Send Notice</button>
+                            </div>
+                            <div class="card">
+                                <h3>Additional Info</h3>
+                                <p><strong>Registration Date:</strong> <span id="detailUserRegistrationDate">N/A</span></p>
+                                <p><strong>Last Seen:</strong> <span id="detailUserLastLogin">N/A</span></p>
+                                <h4>Referral History (<span id="detailUserReferralCount">0</span>)</h4>
+                                <div class="history-list" id="detailUserReferralHistory"><p>No referrals yet.</p></div>
+                                <!-- নতুন যুক্ত করা হয়েছে: ট্রানজেকশন লগ -->
+                                <h4>Transaction Log</h4>
+                                <div class="history-list" id="detailUserTransactionHistory"><p>No transaction history.</p></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Withdrawals Section (পরিবর্তিত কোড) -->
+                <div id="withdrawals-section" class="content-section">
+                    <h2><i class="fas fa-hand-holding-usd"></i> Withdrawal Requests</h2>
+                    <div class="card">
+                        <div class="tab-nav" id="withdrawalTabNav">
+                            <div class="tab-nav-item active" data-status="pending">Pending (<span id="withdrawalCountPending">0</span>)</div>
+                            <div class="tab-nav-item" data-status="paid">Paid (<span id="withdrawalCountPaid">0</span>)</div>
+                            <div class="tab-nav-item" data-status="rejected">Rejected (<span id="withdrawalCountRejected">0</span>)</div>
+                        </div>
+                        
+                        <div id="withdrawalTabContentPending" class="tab-content active withdrawal-list"></div>
+                        <div id="withdrawalTabContentPaid" class="tab-content withdrawal-list"></div>
+                        <div id="withdrawalTabContentRejected" class="tab-content withdrawal-list"></div>
+                    </div>
+                </div>
+
+                <!-- Bonus Section -->
+                <div id="bonus-section" class="content-section">
+                     <h2><i class="fas fa-gift"></i> Bonus Channel Management</h2>
+                    <div class="card">
+                        <h3>Existing Channels</h3>
+                        <div class="bonus-channel-list" id="bonusChannelsListContainer"></div>
+                    </div>
+                    <div class="card">
+                        <h3>Add or Edit Channel</h3>
+                        <div class="form-group"><label>ID (unique)</label><input type="text" id="bonusId" placeholder="e.g., tg_channel_3"></div>
+                        <div class="form-group"><label>Name</label><input type="text" id="bonusName" placeholder="Channel Name"></div>
+                        <div class="form-group"><label>Link</label><input type="text" id="bonusLink" placeholder="https://t.me/channel"></div>
+                        <div class="form-group"><label>Reward</label><input type="number" id="bonusReward" placeholder="e.g., 50"></div>
+                        <div class="form-group"><label>Icon</label><input type="text" id="bonusIcon" placeholder="fas fa-gift"></div>
+                        <button class="btn btn-primary" onclick="saveBonusChannel()">Add New Channel</button>
+                    </div>
+                </div>
+                
+                <!-- Settings Section (পরিবর্তিত কোড) -->
+                <div id="settings-section" class="content-section">
+                    <h2><i class="fas fa-cogs"></i> Global App Settings</h2>
+                    <div class="card">
+                        <h3>General Settings</h3>
+                        <div class="form-group"><label>App Name</label><input type="text" id="settingAppName"></div>
+                        <div class="form-group"><label>App Version</label><input type="text" id="settingAppVersion" placeholder="e.g., 1.0"></div>
+                        <div class="form-group"><label>Developer Profile Link</label><input type="text" id="settingDevLink"></div>
+                        <div class="form-group"><label>Official Channel Link</label><input type="text" id="settingOfficialChannelLink"></div>
+                        <div class="form-group"><label>Support Group Link</label><input type="text" id="settingSupportGroupLink"></div>
+                        <div class="form-group"><label>Referral Bot Link</label><input type="text" id="settingRefBotLink"></div>
+                        <button class="btn btn-success" onclick="saveGeneralSettings()">Save General Settings</button>
+                    </div>
+                    <div class="card">
+                        <h3>Points & Ad Settings</h3>
+                        <div class="form-group"><label>Points Per Ad</label><input type="number" id="settingPointsPerAd"></div>
+                        <div class="form-group"><label>Ads Per Day Limit</label><input type="number" id="settingAdsPerDay"></div>
+                        <div class="form-group"><label>Minimum Withdraw Points</label><input type="number" id="settingMinWithdraw"></div>
+                        <div class="form-group"><label>Daily Bonus Amount</label><input type="number" id="settingDailyBonus"></div> <!-- নতুন -->
+                        <div class="form-group"><label>Referral Bonus (for Referrer)</label><input type="number" id="settingRefBonusReferrer"></div>
+                        <div class="form-group"><label>Referral Bonus (for Referee)</label><input type="number" id="settingRefBonusReferee"></div>
+                        <div class="form-group"><label>Monetag Ad Zone ID</label><input type="text" id="settingMonetagZoneId"></div>
+                        <button class="btn btn-success" onclick="savePointsSettings()">Save Points & Ad Settings</button>
+                    </div>
+                    <!-- নতুন যুক্ত করা হয়েছে: লেভেলিং সিস্টেম ম্যানেজমেন্ট -->
+                    <div class="card">
+                        <h3>Leveling System</h3>
+                        <div class="form-group"><label>XP Per Ad</label><input type="number" id="settingXpPerAd"></div>
+                        <div class="form-group">
+                            <label>Level Thresholds (JSON format)</label>
+                            <textarea id="settingLevelConfig" rows="5" placeholder='[{"xpThreshold": 0, "name": "Bronze"}, {"xpThreshold": 1000, "name": "Silver"}]'></textarea>
+                        </div>
+                        <button class="btn btn-success" onclick="saveLevelingSettings()">Save Leveling Settings</button>
+                    </div>
+                    <div class="card">
+                        <h3>Payment Methods</h3>
+                        <div id="paymentMethodsListContainer"></div>
+                        <div class="form-group" style="display: flex; gap: 10px; margin-top: 15px;">
+                            <input type="text" id="newPaymentMethodName" placeholder="e.g., Bkash">
+                            <button class="btn btn-primary" onclick="addPaymentMethod()">Add</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>Notices & Maintenance</h3>
+                        <div class="form-group">
+                            <label><input type="checkbox" id="settingNoticeActive"> Show Global Notice</label>
+                            <textarea id="settingGlobalNotice" rows="3" placeholder="Enter notice text here..."></textarea>
+                        </div>
+                         <div class="form-group">
+                            <label><input type="checkbox" id="settingMaintenanceMode"> Enable Maintenance Mode</label>
+                            <textarea id="settingMaintenanceMessage" rows="3" placeholder="Enter maintenance message..."></textarea>
+                        </div>
+                        <button class="btn btn-success" onclick="saveNoticeSettings()">Save Notice & Maintenance</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-</head>
-<body>
-    <div id="login-container" style="max-width: 400px; margin: 50px auto; padding: 30px; background: #fff; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.1); text-align: center;">
-        <h2 style="border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 0;">Admin Login</h2>
-        <input type="email" id="email" placeholder="Email" style="padding: 12px; width: 100%; box-sizing: border-box; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px;"><br>
-        <input type="password" id="password" placeholder="Password" style="padding: 12px; width: 100%; box-sizing: border-box; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 4px;"><br>
-        <button onclick="adminLogin()" style="padding: 12px 25px; font-size: 16px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px;">Login</button>
-        <p id="login-error" style="color: red; margin-top: 15px;"></p>
-    </div>
-
-    <div class="admin-container" id="admin-container" style="display:none;">
-        <h1>Admin Panel (Upgraded)</h1>
-
-        <div class="menu-bar">
-            <button class="menu-btn active" onclick="showSection('dashboard')">Dashboard</button>
-            <button class="menu-btn" onclick="showSection('settings')">Global Settings</button>
-            <button class="menu-btn" onclick="showSection('withdrawals')">Withdrawal Requests</button>
-            <button class="menu-btn" onclick="showSection('users')">User Data</button>
-            <button class="menu-btn" onclick="showSection('referrals')">Referrals</button>
-            <button class="menu-btn" onclick="showSection('tasks')">Tasks</button>
-            <button class="menu-btn" onclick="showSection('support')">Support Tickets</button>
-        </div>
-
-        <div id="dashboard" class="section-content">
-            <h2>Dashboard</h2>
-            <div class="dashboard-stats">
-                <div class="stat-box"><h3>Total Users</h3><p id="total-users">0</p></div>
-                <div class="stat-box" style="border-color: #ffc107;"><h3>Pending Withdrawals</h3><p id="pending-withdrawals">0</p></div>
-                <div class="stat-box" style="border-color: #007bff;"><h3>Total Points</h3><p id="total-points">0.00</p></div>
-                <div class="stat-box" style="border-color: #28a745;"><h3>New Users (Today)</h3><p id="today-new-users">0</p></div>
-                <div class="stat-box" style="border-color: #6f42c1;"><h3>Active Users (Today)</h3><p id="active-users-today">0</p></div>
-                <div class="stat-box" style="border-color: #fd7e14;"><h3>Total Ads Watched</h3><p id="total-ads-watched">0</p></div>
-                <div class="stat-box" style="border-color: #dc3545;"><h3>Total Withdrawn</h3><p id="total-withdrawn">0.00</p></div>
-            </div>
-            <div class="table-container">
-                <h3>Top 10 Earners</h3>
-                <table id="top-earners-table">
-                    <thead><tr><th>Rank</th><th>User Name</th><th>Points</th></tr></thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="settings" class="section-content" style="display:none;">
-            <h2>Global Settings</h2>
-            <div class="settings-form">
-                <div class="form-group"><label for="pointsPerAd">Points per Ad</label><input type="number" id="pointsPerAd" step="0.01"></div>
-                <div class="form-group"><label for="minWithdraw">Minimum Withdraw Points</label><input type="number" id="minWithdraw"></div>
-                <div class="form-group"><label for="autoAdInterval">Auto Ad Interval (Seconds)</label><input type="number" id="autoAdInterval"></div>
-                <div class="form-group"><label for="adZoneId">Primary Ad Network Zone ID</label><input type="text" id="adZoneId" placeholder="e.g., 9892594"></div>
-                <div class="form-group"><label for="backupAdZoneId">Backup Ad Network Zone ID</label><input type="text" id="backupAdZoneId" placeholder="e.g., 9892740"></div>
-                <div class="form-group"><label for="paymentMethods">Payment Methods (comma-separated)</label><input type="text" id="paymentMethods" placeholder="e.g., bkash,nagad,rocket"></div>
-                <div class="form-group"><label for="dailyAdLimit">Daily Ad Watch Limit</label><input type="number" id="dailyAdLimit" placeholder="e.g., 20"></div>
-                <div class="form-group"><label for="referrerBonus">Referrer Bonus Points</label><input type="number" id="referrerBonus" step="0.01" placeholder="e.g., 5.00"></div>
-                <div class="form-group"><label for="refereeBonus">New User (Referee) Bonus</label><input type="number" id="refereeBonus" step="0.01" placeholder="e.g., 2.00"></div>
-                <div class="form-group"><label for="dailyCheckinBonus">Daily Check-in Bonus</label><input type="number" id="dailyCheckinBonus" step="0.01" placeholder="e.g., 1.00"></div>
-                <div class="form-group"><label for="currentVersion">App Version</label><input type="text" id="currentVersion" placeholder="e.g., 1.1"></div>
-                <div class="form-group"><label for="adminPassword">Admin Password</label><input type="text" id="adminPassword" placeholder="Enter new admin password"></div>
-                
-                <!-- নতুন যুক্ত করা কোড: অ্যাপ কাস্টমাইজেশন অপশন -->
-                <div class="form-group"><label for="appName">App Name</label><input type="text" id="appName" placeholder="e.g., My Earnings App"></div>
-                <div class="form-group"><label for="devInfo">Developer Info</label><input type="text" id="devInfo" placeholder="e.g., Developed by Me"></div>
-                <div class="form-group"><label for="primaryColor">App Primary Color</label><input type="color" id="primaryColor" style="padding: 0; height: 40px;"></div>
-                <div class="form-group"><label for="withdrawalFee">Withdrawal Fee (%)</label><input type="number" id="withdrawalFee" step="0.1" placeholder="e.g., 2.5"></div>
-
-                <div class="form-group" style="grid-column: 1 / -1;"><label for="announcement">Broadcast Message to Users</label><textarea id="announcement" rows="3" placeholder="Leave empty for no message"></textarea></div>
-                <div class="form-group"><label>Ads Status</label><div class="toggle-switch"><input type="checkbox" id="adsEnabled" style="width: 20px; height: 20px;"><label for="adsEnabled">Ads Enabled</label></div></div>
-                
-                <!-- নতুন যুক্ত করা কোড: বোনাস ইভেন্ট ও ইউজার লেভেল ম্যানেজমেন্ট -->
-                <div style="grid-column: 1 / -1; border-top: 2px solid #ddd; margin-top: 15px; padding-top: 15px;">
-                    <h3 style="text-align:center; margin:0 0 15px 0;">Bonus Event & User Levels</h3>
-                </div>
-                <div class="form-group"><label for="bonusMultiplier">Event: Points Multiplier</label><input type="number" id="bonusMultiplier" step="0.1" placeholder="e.g., 2 for double points"></div>
-                <div class="form-group"><label for="bonusHours">Event: Duration (Hours)</label><input type="number" id="bonusHours" placeholder="e.g., 24 for one day"></div>
-                <div class="form-group" style="grid-column: 1 / -1;"><label for="userLevels">User Levels (JSON Format)</label><textarea id="userLevels" rows="5" placeholder='[{"name":"Bronze","minAds":100,"multiplier":1.1},{"name":"Silver","minAds":500,"multiplier":1.2}]'></textarea></div>
-
-                <div class="form-group" style="grid-column: 1 / -1; border-top: 2px solid #ddd; padding-top: 15px;"><h3 style="text-align: center; margin-top: 0;">Firebase Configuration</h3><p style="text-align: center; color: #666; margin-top: -10px;">Fill this to connect the user app automatically.</p></div>
-                <div class="form-group"><label for="fb_apiKey">API Key</label><input type="text" id="fb_apiKey" placeholder="AIzaSy..."></div>
-                <div class="form-group"><label for="fb_authDomain">Auth Domain</label><input type="text" id="fb_authDomain" placeholder="project-id.firebaseapp.com"></div>
-                <div class="form-group"><label for="fb_databaseURL">Database URL</label><input type="text" id="fb_databaseURL" placeholder="https://project-id-default-rtdb.firebaseio.com"></div>
-                <div class="form-group"><label for="fb_projectId">Project ID</label><input type="text" id="fb_projectId" placeholder="project-id"></div>
-                <div class="form-group"><label for="fb_storageBucket">Storage Bucket</label><input type="text" id="fb_storageBucket" placeholder="project-id.appspot.com"></div>
-                <div class="form-group"><label for="fb_messagingSenderId">Messaging Sender ID</label><input type="text" id="fb_messagingSenderId" placeholder="1234567890"></div>
-                <div class="form-group"><label for="fb_appId">App ID</label><input type="text" id="fb_appId" placeholder="1:123..:web:..."></div>
-                <div class="form-group"><label for="fb_measurementId">Measurement ID (Optional)</label><input type="text" id="fb_measurementId" placeholder="G-..."></div>
-            </div>
-            <button class="btn-save full-width-button" style="margin-top: 15px;" onclick="saveSettings()">Save All Settings</button>
-            <button class="btn-bonus full-width-button" style="margin-top: 10px;" onclick="giveBonusToAll()">Give Bonus to All Users</button>
-        </div>
-
-        <div id="withdrawals" class="section-content" style="display:none;">
-            <h2>Withdrawal Requests</h2>
-            <!-- নতুন: উইথড্রয়াল টেবিলে নতুন কলাম যোগ করা হয়েছে -->
-            <div class="table-container"><table id="withdrawal-requests-table"><thead><tr><th>User</th><th>Req. Amount</th><th>Fee</th><th>Final Amt.</th><th>Method</th><th>Phone</th><th>Status</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
-        </div>
-
-        <div id="users" class="section-content" style="display:none;">
-            <h2>User Data</h2>
-            <div class="search-container"><input type="text" id="user-search" onkeyup="filterUsers()" placeholder="Search by User Name..."></div>
-            <!-- নতুন: ইউজার টেবিলে নতুন কলাম যোগ করা হয়েছে -->
-            <div class="table-container"><table id="user-data-table"><thead><tr><th>User Name</th><th>Watched Ads</th><th>Points</th><th>Registered On</th><th>Actions</th><th>Disable Ads</th><th>Ban Control</th></tr></thead><tbody></tbody></table></div>
-        </div>
-        
-        <div id="referrals" class="section-content" style="display:none;">
-            <h2>Referral Data</h2>
-            <div class="table-container">
-                <table id="referrals-table">
-                    <thead><tr><th>Rank</th><th>Referrer Name</th><th>Total Referrals</th><th>Referral Bonus Earned</th></tr></thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="tasks" class="section-content" style="display:none;">
-            <h2>Task Management</h2>
-            <div class="settings-form">
-                <input type="hidden" id="task-id">
-                <div class="form-group"><label for="task-title">Task Title</label><input type="text" id="task-title" placeholder="e.g., Watch YouTube Video"></div>
-                <div class="form-group"><label for="task-points">Points Reward</label><input type="number" id="task-points" placeholder="e.g., 5"></div>
-                <div class="form-group" style="grid-column: 1 / -1;"><label for="task-desc">Task Description</label><textarea id="task-desc" rows="2"></textarea></div>
-                <div class="form-group" style="grid-column: 1 / -1;"><label for="task-url">Task URL</label><input type="text" id="task-url" placeholder="https://..."></div>
-                <div class="form-group"><label>Task Status</label><div class="toggle-switch"><input type="checkbox" id="task-active" checked style="width: 20px; height: 20px;"><label for="task-active">Task Active</label></div></div>
-                <button class="btn-save" onclick="saveTask()" style="grid-column: 1 / -1;">Save Task</button>
-            </div>
-            <h3 style="margin-top: 30px;">Current Tasks</h3>
-            <div class="table-container"><table id="tasks-table"><thead><tr><th>Title</th><th>Points</th><th>Status</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
-        </div>
-
-        <div id="support" class="section-content" style="display:none;">
-            <h2>Support Tickets</h2>
-            <div class="table-container">
-                <table id="support-tickets-table">
-                    <thead><tr><th>User Name</th><th>Message</th><th>Timestamp</th><th>Action</th></tr></thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <div id="historyModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="document.getElementById('historyModal').style.display='none'">&times;</span>
-            <h3 id="modalUserName">User History</h3>
-            <h4 id="modalSubheading">Transaction Log:</h4>
-            <div id="modalHistoryContent" class="table-container"></div>
-        </div>
-    </div>
-
     <script>
-    const firebaseConfig = {
+        const firebaseConfig = {
         apiKey: "AIzaSyDfn1veuHMeHCbqgYQs_KEREDgwVmBxSHw",
         authDomain: "the-arafat-earnings.firebaseapp.com",
         databaseURL: "https://the-arafat-earnings-default-rtdb.firebaseio.com",
@@ -207,401 +336,257 @@
         messagingSenderId: "1082223011616",
         appId: "1:1082223011616:web:3de7e7438ca002dda6d945",
         measurementId: "G-T9NY7D2RW8"
-    };
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        
+        const ADMIN_PASSWORD = "Admin@2025JR";
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-
-    function adminLogin() {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        const loginError = document.getElementById('login-error');
-        loginError.innerText = ""; 
-        if (!email || !password) { loginError.innerText = "Please enter both email and password."; return; }
-        auth.signInWithEmailAndPassword(email, password).catch(error => { loginError.innerText = error.message; });
-    }
-
-    auth.onAuthStateChanged(user => {
-        if (user) {
-            document.getElementById('login-container').style.display = 'none';
-            document.getElementById('admin-container').style.display = 'block';
-            initializeAppLogic(); 
-        } else {
-            document.getElementById('login-container').style.display = 'block';
-            document.getElementById('admin-container').style.display = 'none';
+        let allUsersData = {}, allWithdrawalsData = {}, selectedUserId = null, appConfig = {};
+        
+        function login() {
+            if (document.getElementById('adminPassword').value === ADMIN_PASSWORD) {
+                document.getElementById('login-overlay').style.display = 'none';
+                document.getElementById('adminContainer').style.display = 'flex';
+                initializeApp();
+            } else { alert('Incorrect Password!'); }
         }
-    });
-    
-    function initializeAppLogic() {
-        const database = firebase.database();
-        const settingsRef = database.ref('settings');
-        const usersRef = database.ref('users');
-        const withdrawalsRef = database.ref('withdrawals');
-        const supportTicketsRef = database.ref('supportTickets');
-        const tasksRef = database.ref('tasks');
-        const transactionsRef = database.ref('transactions');
 
-        settingsRef.on('value', (snapshot) => {
-            const settings = snapshot.val();
-            if (settings) {
-                document.getElementById('pointsPerAd').value = settings.pointsPerAd || 1.0;
-                document.getElementById('minWithdraw').value = settings.minWithdrawPoints || 5;
-                document.getElementById('adsEnabled').checked = settings.adsEnabled === true;
-                document.getElementById('autoAdInterval').value = settings.autoAdIntervalSeconds || 5;
-                document.getElementById('adZoneId').value = settings.adZoneId || '';
-                document.getElementById('backupAdZoneId').value = settings.backupAdZoneId || '';
-                document.getElementById('paymentMethods').value = settings.paymentMethodsCSV || 'bkash,nagad';
-                document.getElementById('announcement').value = settings.announcement || '';
-                document.getElementById('dailyAdLimit').value = settings.dailyAdLimit || 20;
-                document.getElementById('referrerBonus').value = settings.referrerBonus || 5;
-                document.getElementById('refereeBonus').value = settings.refereeBonus || 2;
-                document.getElementById('dailyCheckinBonus').value = settings.dailyCheckinBonus || 1;
-                document.getElementById('currentVersion').value = settings.currentVersion || '1.0';
-                // নতুন যুক্ত করা কোড: নতুন সেটিংস লোড করা
-                document.getElementById('appName').value = settings.appName || '';
-                document.getElementById('devInfo').value = settings.devInfo || '';
-                document.getElementById('primaryColor').value = settings.primaryColor || '#008000';
-                document.getElementById('withdrawalFee').value = settings.withdrawalFeePercentage || 0;
-                document.getElementById('userLevels').value = settings.userLevels || '';
-                // বোনাস ইভেন্টের ইনপুট ফিল্ডগুলো রিসেট রাখা হয়
+        function toggleSidebar() { document.getElementById('adminBody').classList.toggle('sidebar-open'); }
+
+        function showSection(sectionId, title) {
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(sectionId + '-section').classList.add('active');
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            const menuItem = document.querySelector(`.menu-item[data-section="${sectionId}"]`);
+            if (menuItem) {
+                menuItem.classList.add('active');
+                document.getElementById('topbarTitle').innerText = title;
             }
-        });
-        database.ref('admin/password').on('value', (snapshot) => { document.getElementById('adminPassword').value = snapshot.val() || ''; });
-        database.ref('appConfig/firebase').on('value', (snapshot) => {
-            const config = snapshot.val();
-            if (config) { Object.keys(config).forEach(key => { const el = document.getElementById(`fb_${key}`); if(el) el.value = config[key] || ''; }); }
-        });
+            if (window.innerWidth <= 768) toggleSidebar();
+        }
 
-        window.saveSettings = function() {
-            if (document.getElementById('adminPassword').value.trim()) { database.ref('admin/password').set(document.getElementById('adminPassword').value.trim()); }
-            const firebaseConfigData = {};
-            ['apiKey', 'authDomain', 'databaseURL', 'projectId', 'storageBucket', 'messagingSenderId', 'appId', 'measurementId'].forEach(key => { firebaseConfigData[key] = document.getElementById(`fb_${key}`).value.trim(); });
-            database.ref('appConfig/firebase').set(firebaseConfigData);
-
-            // নতুন যুক্ত করা কোড: বোনাস ইভেন্ট তৈরি
-            const bonusMultiplier = parseFloat(document.getElementById('bonusMultiplier').value);
-            const bonusHours = parseFloat(document.getElementById('bonusHours').value);
-            let bonusEventData = { multiplier: 1, expiresAt: 0 };
-            if (bonusMultiplier && bonusHours && bonusMultiplier > 1 && bonusHours > 0) {
-                bonusEventData = {
-                    multiplier: bonusMultiplier,
-                    expiresAt: Date.now() + (bonusHours * 60 * 60 * 1000)
-                };
-            }
-
-            const settings = {
-                pointsPerAd: parseFloat(document.getElementById('pointsPerAd').value),
-                minWithdrawPoints: parseInt(document.getElementById('minWithdraw').value),
-                adsEnabled: document.getElementById('adsEnabled').checked,
-                autoAdIntervalSeconds: parseInt(document.getElementById('autoAdInterval').value),
-                adZoneId: document.getElementById('adZoneId').value.trim(),
-                backupAdZoneId: document.getElementById('backupAdZoneId').value.trim(),
-                paymentMethodsCSV: document.getElementById('paymentMethods').value.trim(),
-                announcement: document.getElementById('announcement').value.trim(),
-                dailyAdLimit: parseInt(document.getElementById('dailyAdLimit').value),
-                referrerBonus: parseFloat(document.getElementById('referrerBonus').value),
-                refereeBonus: parseFloat(document.getElementById('refereeBonus').value),
-                dailyCheckinBonus: parseFloat(document.getElementById('dailyCheckinBonus').value),
-                currentVersion: document.getElementById('currentVersion').value.trim(),
-                // নতুন যুক্ত করা কোড: নতুন সেটিংস সেভ করা
-                appName: document.getElementById('appName').value.trim(),
-                devInfo: document.getElementById('devInfo').value.trim(),
-                primaryColor: document.getElementById('primaryColor').value,
-                withdrawalFeePercentage: parseFloat(document.getElementById('withdrawalFee').value) || 0,
-                userLevels: document.getElementById('userLevels').value.trim(),
-                bonusEvent: bonusEventData
-            };
-            settingsRef.set(settings).then(() => {
-                alert("Settings saved successfully!");
-                document.getElementById('bonusMultiplier').value = '';
-                document.getElementById('bonusHours').value = '';
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const sectionId = e.currentTarget.dataset.section;
+                const title = e.currentTarget.innerText.trim();
+                showSection(sectionId, title);
             });
-        }
+        });
+        
+        document.getElementById('withdrawalTabNav').addEventListener('click', (e) => {
+            if (e.target.classList.contains('tab-nav-item')) {
+                const status = e.target.dataset.status;
+                document.querySelectorAll('#withdrawalTabNav .tab-nav-item').forEach(tab => tab.classList.remove('active'));
+                e.target.classList.add('active');
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                document.getElementById(`withdrawalTabContent${status.charAt(0).toUpperCase() + status.slice(1)}`).classList.add('active');
+            }
+        });
 
-        usersRef.on('value', (snapshot) => {
-            const users = snapshot.val();
-            const tableBody = document.querySelector('#user-data-table tbody');
-            const referralsTableBody = document.querySelector('#referrals-table tbody');
-            tableBody.innerHTML = ''; referralsTableBody.innerHTML = '';
-            let totalUsers = 0, totalPoints = 0, todayNewUsers = 0, totalAdsWatched = 0, activeToday = 0;
-            const allUsersArray = [];
-            const referralData = {};
-
-            if (users) {
-                const today = new Date().toISOString().slice(0, 10);
-                for (const userId in users) {
-                    totalUsers++;
-                    const user = users[userId];
-                    const userPoints = user.earnedPoints || 0;
-                    totalPoints += userPoints;
-                    totalAdsWatched += user.watchedAds || 0;
-                    allUsersArray.push({ userId, ...user });
-                    if(user.createdAt && user.createdAt.slice(0, 10) === today) todayNewUsers++;
-                    if(user.lastAdWatchDate === today) activeToday++;
-
-                    const isBanned = user.isBanned === true;
-                    const adsDisabled = user.adsDisabled === true; // নতুন
-                    let registeredDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-GB') : 'N/A';
-                    
-                    // নতুন যুক্ত করা কোড: টেবিলে নতুন কলামের জন্য HTML
-                    tableBody.innerHTML += `<tr class="${isBanned ? 'banned-user' : ''}">
-                        <td>${user.userName||'N/A'}</td>
-                        <td>${user.watchedAds||0}</td>
-                        <td>${userPoints.toFixed(2)}</td>
-                        <td>${registeredDate}</td>
-                        <td><button class="btn-edit" onclick="editUserPoints('${userId}',${userPoints})">Edit</button><button class="btn-bonus" onclick="giveUserBonus('${userId}')">Bonus</button><button class="btn-deduct" onclick="deductUserPoints('${userId}')">Deduct</button><button class="btn-history" onclick="viewUserHistory('${userId}','${user.userName}')">History</button><button class="btn-notice" onclick="sendUserNotice('${userId}')">Notice</button></td>
-                        <td><label class="user-toggle"><input type="checkbox" ${adsDisabled ? 'checked' : ''} onchange="toggleUserAds('${userId}', this.checked)"><span class="slider"></span></label></td>
-                        <td><button class="${isBanned ? 'btn-unban' : 'btn-ban'}" onclick="toggleUserBan('${userId}',${isBanned})">${isBanned ? 'Unban' : 'Ban'}</button></td>
-                    </tr>`;
-                    
-                    if(user.referralsMade > 0) {
-                        referralData[userId] = { name: user.userName, count: user.referralsMade, bonus: 0 };
+        function initializeApp() {
+            db.ref('users').on('value', (snapshot) => {
+                allUsersData = snapshot.val() || {};
+                renderUsersList();
+                document.getElementById('userCount').innerText = Object.keys(allUsersData).length;
+                updateDashboardAnalytics();
+            });
+            db.ref('config').on('value', (snapshot) => {
+                if(snapshot.exists()){
+                    appConfig = snapshot.val();
+                    document.getElementById('settingAppName').value = appConfig.APP_NAME || '';
+                    document.getElementById('settingAppVersion').value = appConfig.appVersion || '';
+                    document.getElementById('settingDevLink').value = appConfig.DEVELOPER_TELEGRAM_PROFILE_LINK || '';
+                    document.getElementById('settingOfficialChannelLink').value = appConfig.OFFICIAL_CHANNEL_LINK || '';
+                    document.getElementById('settingSupportGroupLink').value = appConfig.SUPPORT_GROUP_LINK || '';
+                    document.getElementById('settingRefBotLink').value = appConfig.REFERRAL_BOT_LINK || '';
+                    document.getElementById('settingPointsPerAd').value = appConfig.POINTS_PER_AD || 0;
+                    document.getElementById('settingAdsPerDay').value = appConfig.ADS_PER_DAY_LIMIT || 0;
+                    document.getElementById('settingMinWithdraw').value = appConfig.MIN_WITHDRAW_POINTS || 0;
+                    document.getElementById('settingDailyBonus').value = appConfig.dailyBonusAmount || 0;
+                    document.getElementById('settingRefBonusReferrer').value = appConfig.REFERRAL_BONUS_REFERRER || 0;
+                    document.getElementById('settingRefBonusReferee').value = appConfig.REFERRAL_BONUS_REFEREE || 0;
+                    document.getElementById('settingMonetagZoneId').value = appConfig.MONETAG_ZONE_ID || '';
+                    document.getElementById('settingNoticeActive').checked = appConfig.isNoticeActive || false;
+                    document.getElementById('settingGlobalNotice').value = appConfig.globalNoticeText || '';
+                    document.getElementById('settingMaintenanceMode').checked = appConfig.isMaintenanceMode || false;
+                    document.getElementById('settingMaintenanceMessage').value = appConfig.maintenanceMessage || '';
+                    if (appConfig.levelingConfig) {
+                        document.getElementById('settingXpPerAd').value = appConfig.levelingConfig.xpPerAd || 10;
+                        document.getElementById('settingLevelConfig').value = JSON.stringify(appConfig.levelingConfig.levels, null, 2);
                     }
+                    renderPaymentMethods();
                 }
-            }
-            document.getElementById('total-users').innerText = totalUsers;
-            document.getElementById('total-points').innerText = totalPoints.toFixed(2);
-            document.getElementById('today-new-users').innerText = todayNewUsers;
-            document.getElementById('total-ads-watched').innerText = totalAdsWatched;
-            document.getElementById('active-users-today').innerText = activeToday;
-            allUsersArray.sort((a, b) => (b.earnedPoints || 0) - (a.earnedPoints || 0));
-            const topEarnersTable = document.querySelector('#top-earners-table tbody');
-            topEarnersTable.innerHTML = '';
-            allUsersArray.slice(0, 10).forEach((user, i) => topEarnersTable.innerHTML += `<tr><td>${i+1}</td><td>${user.userName}</td><td>${(user.earnedPoints||0).toFixed(2)}</td></tr>`);
-
-            transactionsRef.once('value', transSnap => {
-                const transactions = transSnap.val() || {};
-                Object.keys(transactions).forEach(uid => {
-                    Object.values(transactions[uid]).forEach(t => {
-                        if (t.type === 'referrer_bonus' && referralData[uid]) {
-                            referralData[uid].bonus += t.amount;
-                        }
-                    });
-                });
-                const sortedReferrals = Object.values(referralData).sort((a,b) => b.count - a.count);
-                sortedReferrals.forEach((ref, i) => referralsTableBody.innerHTML += `<tr><td>${i+1}</td><td>${ref.name}</td><td>${ref.count}</td><td>${ref.bonus.toFixed(2)}</td></tr>`);
             });
-        });
+            db.ref('bonusChannels').on('value', (snapshot) => {
+                const container = document.getElementById('bonusChannelsListContainer'); container.innerHTML = '';
+                const channels = snapshot.val() || {};
+                Object.values(channels).forEach(channel => {
+                    const el = document.createElement('div'); el.className = 'list-item';
+                    el.innerHTML = `<div class="list-item-header">${channel.name} (+${channel.reward})</div><div class="list-item-subheader">ID: ${channel.id}</div><button class="btn btn-warning btn-sm" style="padding: 5px 10px;" onclick="editBonusChannel('${channel.id}', '${channel.name}', '${channel.link}', ${channel.reward}, '${channel.icon}')">Edit</button><button class="btn btn-danger btn-sm" style="padding: 5px 10px;" onclick="deleteBonusChannel('${channel.id}')">Delete</button>`;
+                    container.appendChild(el);
+                });
+            });
 
-        withdrawalsRef.orderByChild('timestamp').on('value', (snapshot) => {
-            const requests = snapshot.val();
-            const tableBody = document.querySelector('#withdrawal-requests-table tbody');
-            tableBody.innerHTML = '';
-            let pendingCount = 0, totalWithdrawn = 0;
-            if (requests) {
-                const sortedRequests = Object.entries(requests).reverse();
-                for (const [reqId, req] of sortedRequests) {
-                    let statusClass = (req.status === 'Pending') ? 'status-pending' : (req.status === 'Approved') ? 'status-approved' : 'status-denied';
-                    if (req.status === 'Pending') pendingCount++;
-                    if (req.status === 'Approved') totalWithdrawn += req.amount;
-                    // নতুন যুক্ত করা কোড: টেবিলে ফি এবং ফাইনাল অ্যামাউন্ট দেখানো
-                    tableBody.innerHTML += `<tr>
-                        <td>${req.userName||'N/A'}</td>
-                        <td>${(req.amount || 0).toFixed(2)}</td>
-                        <td>${(req.fee || 0).toFixed(2)}</td>
-                        <td>${(req.finalAmount || 0).toFixed(2)}</td>
-                        <td>${req.method}</td>
-                        <td>${req.phone}</td>
-                        <td><span class="status ${statusClass}">${req.status}</span></td>
-                        <td>${req.status==='Pending'?`<button class="btn-approve" onclick="updateWithdrawalStatus('${reqId}','Approved')">Approve</button><button class="btn-deny" onclick="updateWithdrawalStatus('${reqId}','Denied','${req.userId}',${req.amount})">Deny</button>`:'Processed'}</td>
-                    </tr>`;
+            db.ref('withdrawals').orderByChild('timestamp').on('value', (snapshot) => {
+                 allWithdrawalsData = snapshot.val() || {};
+                 renderAllWithdrawals();
+                 updateDashboardAnalytics();
+                 if (selectedUserId) showUserDetails(selectedUserId);
+            });
+        }
+        
+        function renderAllWithdrawals() {
+            const containerPending = document.getElementById('withdrawalTabContentPending');
+            const containerPaid = document.getElementById('withdrawalTabContentPaid');
+            const containerRejected = document.getElementById('withdrawalTabContentRejected');
+            containerPending.innerHTML = ''; containerPaid.innerHTML = ''; containerRejected.innerHTML = '';
+
+            const requests = Object.entries(allWithdrawalsData).reverse();
+
+            let pendingCount = 0, paidCount = 0, rejectedCount = 0;
+
+            requests.forEach(([reqId, req]) => {
+                const el = document.createElement('div');
+                el.className = 'list-item';
+                
+                if (req.status === 'pending') {
+                    el.innerHTML = `<div class="list-item-header">${req.userName} - ${req.points} Points</div><div class="list-item-subheader">${req.method}: ${req.account} | UserID: ${req.userId}</div><button class="btn btn-success" onclick="markAsPaid('${reqId}')">Paid</button><button class="btn btn-danger" onclick="rejectWithdrawal('${reqId}', '${req.userId}', ${req.points})">Reject</button>`;
+                    containerPending.appendChild(el);
+                    pendingCount++;
+                } else if (req.status === 'paid') {
+                    el.innerHTML = `<div class="list-item-header">${req.userName} - ${req.points} Points</div><div class="list-item-subheader">${req.method}: ${req.account} | Status: <span style="color: green;">Paid</span></div>`;
+                    containerPaid.appendChild(el);
+                    paidCount++;
+                } else if (req.status === 'rejected') {
+                    el.innerHTML = `<div class="list-item-header">${req.userName} - ${req.points} Points</div><div class="list-item-subheader">${req.method}: ${req.account} | Status: <span style="color: red;">Rejected</span></div>`;
+                    containerRejected.appendChild(el);
+                    rejectedCount++;
                 }
-            }
-            document.getElementById('pending-withdrawals').innerText = pendingCount;
-            document.getElementById('total-withdrawn').innerText = totalWithdrawn.toFixed(2);
-        });
-
-        supportTicketsRef.on('value', (snapshot) => {
-            const tickets = snapshot.val() || {};
-            const tableBody = document.querySelector('#support-tickets-table tbody');
-            tableBody.innerHTML = '';
-            const sortedTickets = Object.entries(tickets).reverse();
-            for (const [ticketId, ticket] of sortedTickets) {
-                tableBody.innerHTML += `<tr><td>${ticket.userName}</td><td>${ticket.message}</td><td>${new Date(ticket.timestamp).toLocaleString()}</td><td><button class="btn-reply" onclick="replyToTicket('${ticket.userId}', '${ticketId}')">Reply & Resolve</button><button class="btn-deny" onclick="resolveTicket('${ticketId}')">Delete</button></td></tr>`;
-            }
-        });
-
-        tasksRef.on('value', snapshot => {
-            const tasks = snapshot.val() || {};
-            const tableBody = document.querySelector('#tasks-table tbody');
-            tableBody.innerHTML = '';
-            for (const [taskId, task] of Object.entries(tasks)) {
-                tableBody.innerHTML += `<tr>
-                    <td>${task.title}</td>
-                    <td>${task.points}</td>
-                    <td><span class="status ${task.isActive ? 'status-approved' : 'status-denied'}">${task.isActive ? 'Active' : 'Inactive'}</span></td>
-                    <td>
-                        <button class="btn-edit" onclick="editTask('${taskId}')">Edit</button>
-                        <button class="btn-deny" onclick="deleteTask('${taskId}')">Delete</button>
-                    </td>
-                </tr>`;
-            }
-        });
-
-        window.showSection = function(sectionId) {
-            document.querySelectorAll('.section-content').forEach(sec => sec.style.display = 'none');
-            document.getElementById(sectionId).style.display = 'block';
-            document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`.menu-btn[onclick="showSection('${sectionId}')"]`).classList.add('active');
-        }
-        document.addEventListener('DOMContentLoaded', () => showSection('dashboard'));
-        
-        window.filterUsers = function() {
-            const filter = document.getElementById('user-search').value.toUpperCase();
-            document.querySelectorAll('#user-data-table tbody tr').forEach(tr => {
-                const td = tr.getElementsByTagName('td')[0];
-                if (td) tr.style.display = (td.textContent.toUpperCase().indexOf(filter) > -1) ? "" : "none";
             });
-        }
-        
-        function logAdminTransaction(userId, type, amount, details) {
-            transactionsRef.child(userId).push({ type, amount, details, timestamp: new Date().toISOString() });
-        }
-        
-        window.giveUserBonus = function(userId) {
-            const bonusAmount = parseFloat(prompt(`Enter bonus points for user:`));
-            if (!isNaN(bonusAmount) && bonusAmount > 0) {
-                usersRef.child(`${userId}/earnedPoints`).transaction(p => (p||0) + bonusAmount);
-                logAdminTransaction(userId, 'admin_bonus', bonusAmount, 'Bonus from admin');
-                alert(`Successfully gave ${bonusAmount} points`);
-            } else { alert("Invalid amount."); }
+
+            document.getElementById('withdrawalCountPending').innerText = pendingCount;
+            document.getElementById('withdrawalCountPaid').innerText = paidCount;
+            document.getElementById('withdrawalCountRejected').innerText = rejectedCount;
         }
 
-        window.deductUserPoints = function(userId) {
-            const deductAmount = parseFloat(prompt(`Enter points to deduct from user:`));
-            if (!isNaN(deductAmount) && deductAmount > 0) {
-                usersRef.child(`${userId}/earnedPoints`).transaction(p => Math.max(0, (p||0) - deductAmount));
-                logAdminTransaction(userId, 'admin_deduct', -deductAmount, 'Deduction by admin');
-                alert(`Successfully deducted ${deductAmount} points`);
-            } else { alert("Invalid amount."); }
+        function updateDashboardAnalytics() {
+            const totalUsers = Object.keys(allUsersData).length; document.getElementById('analyticsTotalUsers').innerText = totalUsers;
+            const today = new Date().toISOString().slice(0, 10);
+            const newUsersToday = Object.values(allUsersData).filter(u => u.registrationDate && u.registrationDate.startsWith(today)).length; document.getElementById('analyticsNewUsersToday').innerText = newUsersToday;
+            const pendingWithdrawals = Object.values(allWithdrawalsData).filter(req => req.status === 'pending').length; document.getElementById('analyticsPendingWithdrawals').innerText = pendingWithdrawals;
+            const totalPoints = Object.values(allUsersData).reduce((sum, user) => sum + (user.points || 0), 0); document.getElementById('analyticsTotalPoints').innerText = totalPoints.toLocaleString();
         }
-
-        window.viewUserHistory = function(userId, userName) {
-            document.getElementById('modalUserName').innerText = `History for ${userName}`;
-            const contentDiv = document.getElementById('modalHistoryContent');
-            contentDiv.innerHTML = "Loading...";
-            document.getElementById('historyModal').style.display = 'block';
-            transactionsRef.child(userId).orderByChild('timestamp').limitToLast(100).once('value', snapshot => {
-                const history = snapshot.val();
-                if(!history) { contentDiv.innerHTML = "<p>No transaction history found.</p>"; return; }
-                let tableHTML = '<table><thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Details</th></tr></thead><tbody>';
-                Object.values(history).reverse().forEach(t => {
-                    tableHTML += `<tr>
-                        <td>${new Date(t.timestamp).toLocaleString()}</td>
-                        <td style="text-transform: capitalize;">${t.type.replace(/_/g, ' ')}</td>
-                        <td style="color:${t.amount > 0 ? 'green' : 'red'}; font-weight: bold;">${t.amount > 0 ? '+' : ''}${t.amount.toFixed(2)}</td>
-                        <td>${t.details || 'N/A'}</td>
-                    </tr>`;
-                });
-                contentDiv.innerHTML = tableHTML + '</tbody></table>';
-            });
-        }
+        async function saveGeneralSettings() { const updates = { APP_NAME: document.getElementById('settingAppName').value, appVersion: document.getElementById('settingAppVersion').value, DEVELOPER_TELEGRAM_PROFILE_LINK: document.getElementById('settingDevLink').value, OFFICIAL_CHANNEL_LINK: document.getElementById('settingOfficialChannelLink').value, SUPPORT_GROUP_LINK: document.getElementById('settingSupportGroupLink').value, REFERRAL_BOT_LINK: document.getElementById('settingRefBotLink').value, }; await db.ref('config').update(updates); alert('General settings updated!'); }
+        async function savePointsSettings() { const updates = { POINTS_PER_AD: parseInt(document.getElementById('settingPointsPerAd').value), ADS_PER_DAY_LIMIT: parseInt(document.getElementById('settingAdsPerDay').value), MIN_WITHDRAW_POINTS: parseInt(document.getElementById('settingMinWithdraw').value), dailyBonusAmount: parseInt(document.getElementById('settingDailyBonus').value), REFERRAL_BONUS_REFERRER: parseInt(document.getElementById('settingRefBonusReferrer').value), REFERRAL_BONUS_REFEREE: parseInt(document.getElementById('settingRefBonusReferee').value), MONETAG_ZONE_ID: document.getElementById('settingMonetagZoneId').value.trim() }; await db.ref('config').update(updates); alert('Points & Ad settings updated!'); }
         
-        window.sendUserNotice = function(userId, defaultMessage = "") {
-            const message = prompt("Enter the notice/message for this user:", defaultMessage);
-            if(message) usersRef.child(`${userId}/notice`).set(message).then(()=>alert("Notice sent successfully!"));
-        }
-        
-        window.resolveTicket = function(ticketId) {
-            if (confirm("Are you sure you want to delete this ticket?")) {
-                supportTicketsRef.child(ticketId).remove().then(()=>alert("Ticket deleted."));
-            }
-        }
-        window.replyToTicket = function(userId, ticketId) {
-            const reply = prompt("Enter your reply to the user:");
-            if (reply && reply.trim()) {
-                sendUserNotice(userId, reply.trim());
-                supportTicketsRef.child(ticketId).remove();
+        async function saveLevelingSettings() {
+            try {
+                const levels = JSON.parse(document.getElementById('settingLevelConfig').value);
+                const xpPerAd = parseInt(document.getElementById('settingXpPerAd').value);
+                if (!Array.isArray(levels) || xpPerAd < 0) {
+                    throw new Error("Invalid format");
+                }
+                const updates = { levelingConfig: { xpPerAd, levels } };
+                await db.ref('config').update(updates);
+                alert('Leveling settings updated!');
+            } catch(e) {
+                alert('Invalid JSON format for Level Thresholds. Please check your input.');
             }
         }
 
-        window.giveBonusToAll = function() {
-            const bonusAmount = parseFloat(prompt("Enter bonus points to give to ALL users:"));
-             if (!isNaN(bonusAmount) && bonusAmount > 0 && confirm(`Are you sure you want to give ${bonusAmount} points to EVERY user?`)) {
-                usersRef.once('value').then((snapshot) => {
-                    const updates = {};
-                    snapshot.forEach(cs => {
-                        updates[`/users/${cs.key}/earnedPoints`] = (cs.val().earnedPoints||0) + bonusAmount;
-                        updates[`/transactions/${cs.key}/${database.ref().push().key}`] = { type: 'global_bonus', amount: bonusAmount, details: 'Bonus for all users', timestamp: new Date().toISOString() };
-                    });
-                    database.ref().update(updates).then(()=>alert("Bonus given to all users successfully!"));
-                });
-            } else { alert("Invalid amount entered."); }
-        }
-
-        window.editUserPoints = function(userId, currentPoints) {
-            const newPoints = prompt(`Enter new points for user:`, currentPoints);
-            if (newPoints !== null && !isNaN(newPoints)) {
-                const newAmount = parseFloat(newPoints);
-                const diff = newAmount - currentPoints;
-                usersRef.child(`${userId}/earnedPoints`).set(newAmount);
-                logAdminTransaction(userId, 'manual_edit', diff, `Points manually set to ${newAmount}`);
-            }
-        }
+        async function saveNoticeSettings() { const updates = { isNoticeActive: document.getElementById('settingNoticeActive').checked, globalNoticeText: document.getElementById('settingGlobalNotice').value, isMaintenanceMode: document.getElementById('settingMaintenanceMode').checked, maintenanceMessage: document.getElementById('settingMaintenanceMessage').value, }; await db.ref('config').update(updates); alert('Notice & Maintenance settings updated!'); }
+        async function sendPersonalNotice() { if (!selectedUserId) return alert('No user selected.'); const message = document.getElementById('personalNoticeMessage').value; if (!message.trim()) return alert('Message cannot be empty.'); const notice = { message: message, timestamp: new Date().getTime() }; await db.ref(`users/${selectedUserId}/personalNotice`).set(notice); document.getElementById('personalNoticeMessage').value = ''; alert('Personal notice sent successfully!'); }
+        function renderPaymentMethods() { const container = document.getElementById('paymentMethodsListContainer'); container.innerHTML = ''; const methods = appConfig.PAYMENT_METHODS || []; methods.forEach(method => { const el = document.createElement('div'); el.className = 'list-item'; el.innerHTML = `<span>${method.name}</span><button class="btn btn-danger btn-sm" style="padding: 5px 10px;" onclick="deletePaymentMethod('${method.name}')">Delete</button>`; container.appendChild(el); }); }
+        async function addPaymentMethod() { const newName = document.getElementById('newPaymentMethodName').value.trim(); if (!newName) return alert('Method name is required.'); let methods = appConfig.PAYMENT_METHODS || []; if (methods.some(m => m.name.toLowerCase() === newName.toLowerCase())) return alert('This method already exists.'); methods.push({ name: newName }); await db.ref('config/PAYMENT_METHODS').set(methods); document.getElementById('newPaymentMethodName').value = ''; alert('Payment method added!'); }
+        async function deletePaymentMethod(nameToDelete) { if (!confirm(`Are you sure you want to delete "${nameToDelete}"?`)) return; let methods = (appConfig.PAYMENT_METHODS || []).filter(m => m.name !== nameToDelete); await db.ref('config/PAYMENT_METHODS').set(methods); alert('Payment method deleted!'); }
+        function renderUsersList() { const container = document.getElementById('usersListContainer'); const searchTerm = document.getElementById('userSearch').value.toLowerCase(); container.innerHTML = ''; const sortedUsers = Object.entries(allUsersData).sort(([,a], [,b]) => (b.points || 0) - (a.points || 0)); sortedUsers.forEach(([userId, user]) => { if (user.name.toLowerCase().includes(searchTerm) || userId.toLowerCase().includes(searchTerm)) { const el = document.createElement('div'); el.className = 'list-item'; if (userId === selectedUserId) el.classList.add('active'); el.setAttribute('onclick', `showUserDetails('${userId}')`); el.innerHTML = `<div class="list-item-header">${user.name} ${user.isBlocked ? '<span style="color:red;">(Blocked)</span>' : ''}</div><div class="list-item-subheader">Points: ${user.points || 0} | Level: ${user.level || 1} | ID: ${userId}</div>`; container.appendChild(el); } }); }
         
-        window.updateWithdrawalStatus = function(reqId, newStatus, userId, amount) {
-            if (confirm(`Are you sure you want to set this request to "${newStatus}"?`)) {
-                withdrawalsRef.child(`${reqId}/status`).set(newStatus).then(() => {
-                    if(newStatus==='Denied') {
-                        usersRef.child(`${userId}/earnedPoints`).transaction((p)=>(p||0)+amount);
-                        logAdminTransaction(userId, 'withdraw_denied', amount, `Withdrawal of ${amount} points denied and refunded.`);
-                    } else if (newStatus === 'Approved') {
-                        logAdminTransaction(userId, 'withdraw_approved', -amount, `Withdrawal of ${amount} points approved.`);
-                    }
-                    alert("Status updated successfully!");
-                });
-            }
-        }
-        
-        window.toggleUserBan = function(userId, isCurrentlyBanned) {
-            if(confirm(`Are you sure you want to ${isCurrentlyBanned?"unban":"ban"} this user?`)) usersRef.child(`${userId}/isBanned`).set(!isCurrentlyBanned);
-        }
-
-        // নতুন যুক্ত করা কোড: নির্দিষ্ট ব্যবহারকারীর জন্য বিজ্ঞাপন চালু/বন্ধ করার ফাংশন
-        window.toggleUserAds = function(userId, isDisabled) {
-            usersRef.child(`${userId}/adsDisabled`).set(isDisabled);
-        }
-        
-        window.saveTask = function() {
-            const taskId = document.getElementById('task-id').value;
-            const taskData = {
-                title: document.getElementById('task-title').value,
-                description: document.getElementById('task-desc').value,
-                points: parseFloat(document.getElementById('task-points').value),
-                url: document.getElementById('task-url').value,
-                isActive: document.getElementById('task-active').checked
-            };
-            if (!taskData.title || !taskData.points) { alert("Title and Points are required."); return; }
+        function showUserDetails(userId) { 
+            selectedUserId = userId; 
+            const user = allUsersData[userId]; 
+            document.getElementById('userDetailsCard').style.display = 'block'; 
+            document.getElementById('detailUserId').value = userId; 
+            document.getElementById('detailUserName').value = user.name; 
+            document.getElementById('detailUserPoints').value = user.points || 0; 
+            document.getElementById('detailUserLevel').value = user.level || 1;
+            document.getElementById('detailUserXp').value = user.xp || 0;
+            const blockBtn = document.getElementById('blockUserBtn'); 
+            blockBtn.textContent = user.isBlocked ? 'Unblock User' : 'Block User'; 
+            blockBtn.className = `btn ${user.isBlocked ? 'btn-success' : 'btn-warning'}`; 
+            document.getElementById('detailUserRegistrationDate').innerText = user.registrationDate ? new Date(user.registrationDate).toLocaleString() : 'N/A'; 
+            document.getElementById('detailUserLastLogin').innerText = user.lastLoginDate ? new Date(user.lastLoginDate).toLocaleString() : 'N/A'; 
+            const refCount = user.referredUsers ? user.referredUsers.length : 0; 
+            document.getElementById('detailUserReferralCount').innerText = refCount; 
+            const refContainer = document.getElementById('detailUserReferralHistory'); 
+            refContainer.innerHTML = ''; 
+            if (refCount > 0) user.referredUsers.forEach(code => { refContainer.innerHTML += `<div class="history-item">Referred code: ${code}</div>`; }); else refContainer.innerHTML = '<p>No referrals yet.</p>'; 
             
-            const ref = taskId ? tasksRef.child(taskId) : tasksRef.push();
-            ref.set(taskData).then(() => {
-                alert("Task saved successfully!");
-                document.getElementById('task-id').value = '';
-                document.getElementById('task-title').value = '';
-                document.getElementById('task-desc').value = '';
-                document.getElementById('task-points').value = '';
-                document.getElementById('task-url').value = '';
+            const transactionContainer = document.getElementById('detailUserTransactionHistory');
+            transactionContainer.innerHTML = 'Loading...';
+            db.ref('transactionLogs/' + userId).orderByChild('timestamp').limitToLast(50).once('value', (snapshot) => {
+                transactionContainer.innerHTML = '';
+                if(snapshot.exists()) {
+                    const logs = Object.values(snapshot.val()).reverse();
+                    logs.forEach(log => {
+                        const sign = log.type === 'credit' ? '+' : '-';
+                        const color = log.type === 'credit' ? 'green' : 'red';
+                        transactionContainer.innerHTML += `<div class="history-item"><span style="color: ${color};">${sign}${log.amount}</span>: ${log.description} <i>(${new Date(log.timestamp).toLocaleString()})</i></div>`;
+                    });
+                } else {
+                    transactionContainer.innerHTML = '<p>No transaction history.</p>';
+                }
             });
+
+            renderUsersList(); 
         }
-        window.editTask = function(taskId) {
-            tasksRef.child(taskId).once('value', snapshot => {
-                const task = snapshot.val();
-                document.getElementById('task-id').value = taskId;
-                document.getElementById('task-title').value = task.title;
-                document.getElementById('task-desc').value = task.description;
-                document.getElementById('task-points').value = task.points;
-                document.getElementById('task-url').value = task.url;
-                document.getElementById('task-active').checked = task.isActive;
-                showSection('tasks');
-                window.scrollTo(0,0);
-            });
+
+        async function saveUserDetails() { 
+            if (!selectedUserId) return; 
+            await db.ref('users/' + selectedUserId).update({ 
+                name: document.getElementById('detailUserName').value, 
+                points: parseInt(document.getElementById('detailUserPoints').value),
+                level: parseInt(document.getElementById('detailUserLevel').value),
+                xp: parseInt(document.getElementById('detailUserXp').value)
+            }); 
+            alert('User details updated!'); 
         }
-        window.deleteTask = function(taskId) {
-            if(confirm("Are you sure you want to delete this task?")) {
-                tasksRef.child(taskId).remove();
-            }
+
+        async function deleteUser() { if (!selectedUserId || !confirm(`Delete user ${allUsersData[selectedUserId].name}?`)) return; await db.ref('users/' + selectedUserId).remove(); await db.ref('transactionLogs/' + selectedUserId).remove(); document.getElementById('userDetailsCard').style.display = 'none'; selectedUserId = null; alert('User deleted!'); }
+        async function toggleBlockUser() { if (!selectedUserId) return; const user = allUsersData[selectedUserId]; const newStatus = !user.isBlocked; if (!confirm(`Are you sure to ${newStatus ? 'block' : 'unblock'} this user?`)) return; await db.ref(`users/${selectedUserId}`).update({ isBlocked: newStatus }); alert(`User ${newStatus ? 'blocked' : 'unblocked'}!`); }
+        function editBonusChannel(id, name, link, reward, icon) { document.getElementById('bonusId').value = id; document.getElementById('bonusId').readOnly = true; document.getElementById('bonusName').value = name; document.getElementById('bonusLink').value = link; document.getElementById('bonusReward').value = reward; document.getElementById('bonusIcon').value = icon; const saveButton = document.querySelector('#bonus-section .btn-primary'); saveButton.innerText = 'Update Channel'; document.getElementById('bonusId').focus(); }
+        async function saveBonusChannel() {
+            const id = document.getElementById('bonusId').value.trim();
+            const name = document.getElementById('bonusName').value.trim();
+            const link = document.getElementById('bonusLink').value.trim();
+            const reward = parseInt(document.getElementById('bonusReward').value);
+            const icon = document.getElementById('bonusIcon').value.trim();
+            if (!id || !name || !link || !reward || !icon) return alert('Please fill all fields.');
+            await db.ref('bonusChannels/' + id).set({ id, name, link, reward, icon });
+            const idInput = document.getElementById('bonusId'); idInput.readOnly = false;
+            const saveButton = document.querySelector('#bonus-section .btn-primary'); saveButton.innerText = 'Add New Channel';
+            alert('Bonus channel saved!');
+            document.getElementById('bonusId').value = ''; document.getElementById('bonusName').value = ''; document.getElementById('bonusLink').value = ''; document.getElementById('bonusReward').value = ''; document.getElementById('bonusIcon').value = '';
         }
-    } 
+        async function deleteBonusChannel(channelId) { if (!confirm(`Delete bonus channel ID: ${channelId}?`)) return; await db.ref('bonusChannels/' + channelId).remove(); alert('Bonus channel deleted.'); }
+        async function markAsPaid(reqId) { if (!confirm('Mark as paid?')) return; await db.ref(`withdrawals/${reqId}`).update({ status: 'paid' }); alert('Request marked as paid.'); }
+        
+        async function rejectWithdrawal(reqId, userId, points) { 
+            if (!confirm('Reject request and refund points?')) return; 
+            
+            const logEntry = {
+                timestamp: new Date().toISOString(),
+                type: 'credit',
+                amount: points,
+                description: 'Withdrawal Rejected (Refund)'
+            };
+            await db.ref(`transactionLogs/${userId}`).push(logEntry);
+
+            await db.ref(`users/${userId}/points`).set(firebase.database.ServerValue.increment(points)); 
+            await db.ref(`withdrawals/${reqId}`).update({ status: 'rejected' }); 
+            alert('Request rejected and points refunded.'); 
+        }
     </script>
 </body>
 </html>
